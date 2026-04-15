@@ -29,7 +29,6 @@ jobs:
             echo "has_meta=false" >> $GITHUB_OUTPUT
           fi
 
-      # Helper function for Telegram notifications
       - name: Setup Telegram notifier
         if: steps.meta.outputs.has_meta == 'true'
         env:
@@ -48,7 +47,6 @@ jobs:
           echo "TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}" >> $GITHUB_ENV
           echo "CHAT_ID=${CHAT_ID}" >> $GITHUB_ENV
 
-      # --- Progress: Build started ---
       - name: Notify - Build started
         if: steps.meta.outputs.has_meta == 'true'
         run: bash /tmp/notify.sh "[1/6] Build started - Setting up Node.js..."
@@ -58,7 +56,6 @@ jobs:
         with:
           node-version: 20
 
-      # --- Progress: Installing deps ---
       - name: Notify - Installing dependencies
         if: steps.meta.outputs.has_meta == 'true'
         run: bash /tmp/notify.sh "[2/6] Installing dependencies..."
@@ -66,13 +63,27 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      # Create dummy assets so prebuild doesn't fail on missing icons
+      - name: Create placeholder assets
+        run: |
+          mkdir -p assets
+          # Create a 1x1 transparent PNG for icon and splash
+          python3 -c "
+          import base64, os
+          # Minimal valid 48x48 PNG (solid color)
+          png = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAIAAADYYG7QAAAADklEQVRYw+3BAQ0AAADCoPdPbQ43oAAAAIdJREFUeJztwQENAAAAwqD3T20ON6AAAH5tGYAAAU8sLwAAAABJRU5ErkJggg==')
+          for name in ['icon.png', 'splash.png', 'adaptive-icon.png', 'favicon.png']:
+            with open(f'assets/{name}', 'wb') as f:
+              f.write(png)
+          print('Created placeholder assets')
+          "
+
       # ============================================
       # PATH A: Try EAS Build first (free tier)
       # ============================================
       - name: Install EAS CLI
         run: npm install -g eas-cli
 
-      # --- Progress: EAS Build ---
       - name: Notify - Trying EAS Build
         if: steps.meta.outputs.has_meta == 'true'
         run: bash /tmp/notify.sh "[3/6] Trying EAS Build (Path A)... This may take 5-15 min."
@@ -102,10 +113,8 @@ jobs:
                     BUILD_URL=$(echo "$BUILD_INFO" | jq -r '.artifacts.buildUrl // empty')
                     echo "apk_url=$BUILD_URL" >> $GITHUB_OUTPUT
                     echo "success=true" >> $GITHUB_OUTPUT
-                    echo "EAS Build completed!"
                     break
                   elif [ "$STATUS" = "errored" ]; then
-                    echo "EAS Build errored"
                     echo "success=false" >> $GITHUB_OUTPUT
                     break
                   fi
@@ -121,7 +130,6 @@ jobs:
             echo "success=false" >> $GITHUB_OUTPUT
           fi
 
-      # --- Progress: EAS result ---
       - name: Notify - EAS Build succeeded
         if: steps.eas_build.outputs.success == 'true' && steps.meta.outputs.has_meta == 'true'
         run: bash /tmp/notify.sh "[4/6] EAS Build succeeded! Preparing download link..."
@@ -144,19 +152,51 @@ jobs:
         if: steps.eas_build.outputs.success != 'true'
         uses: android-actions/setup-android@v3
 
-      # --- Progress: Gradle building ---
       - name: Notify - Gradle building
         if: steps.eas_build.outputs.success != 'true' && steps.meta.outputs.has_meta == 'true'
         run: bash /tmp/notify.sh "[5/6] Running Expo prebuild + Gradle... This may take 10-20 min."
 
       - name: Expo Prebuild (Gradle fallback)
+        id: prebuild
         if: steps.eas_build.outputs.success != 'true'
+        continue-on-error: true
         run: |
           echo "Running expo prebuild..."
           npx expo prebuild --platform android --no-install
+          echo "prebuild_ok=true" >> $GITHUB_OUTPUT
+
+      - name: Notify - Prebuild failed
+        if: steps.prebuild.outcome == 'failure' && steps.meta.outputs.has_meta == 'true'
+        run: bash /tmp/notify.sh "[5/6] Expo prebuild failed. Trying to fix and retry..."
+
+      # Retry prebuild: strip icon/splash references from app.json if they cause issues
+      - name: Fix app.json and retry prebuild
+        id: prebuild_retry
+        if: steps.prebuild.outcome == 'failure'
+        continue-on-error: true
+        run: |
+          echo "Fixing app.json - removing problematic asset references..."
+          python3 -c "
+          import json
+          with open('app.json') as f:
+            data = json.load(f)
+          expo = data.get('expo', data)
+          # Remove icon/splash references that point to missing files
+          for key in ['icon', 'splash', 'adaptiveIcon']:
+            expo.pop(key, None)
+          if 'android' in expo:
+            expo['android'].pop('adaptiveIcon', None)
+          if 'ios' in expo:
+            expo['ios'].pop('icon', None)
+          with open('app.json', 'w') as f:
+            json.dump(data if 'expo' in data else {'expo': expo}, f, indent=2)
+          print('Fixed app.json')
+          "
+          npx expo prebuild --platform android --no-install --clean
+          echo "prebuild_ok=true" >> $GITHUB_OUTPUT
 
       - name: Gradle Build APK (Gradle fallback)
-        if: steps.eas_build.outputs.success != 'true'
+        if: steps.eas_build.outputs.success != 'true' && (steps.prebuild.outputs.prebuild_ok == 'true' || steps.prebuild_retry.outputs.prebuild_ok == 'true')
         id: gradle_build
         run: |
           cd android
@@ -186,10 +226,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # ============================================
-      # Determine final APK URL
+      # Final result
       # ============================================
       - name: Get final APK URL
         id: final_url
+        if: always()
         run: |
           if [ "${{ steps.eas_build.outputs.success }}" = "true" ]; then
             echo "url=${{ steps.eas_build.outputs.apk_url }}" >> $GITHUB_OUTPUT
@@ -202,11 +243,8 @@ jobs:
             echo "method=none" >> $GITHUB_OUTPUT
           fi
 
-      # ============================================
-      # Final Telegram notification
-      # ============================================
       - name: Notify - APK ready
-        if: steps.final_url.outputs.url != 'FAILED' && steps.meta.outputs.has_meta == 'true'
+        if: always() && steps.final_url.outputs.url != 'FAILED' && steps.meta.outputs.has_meta == 'true'
         env:
           APK_URL: ${{ steps.final_url.outputs.url }}
           METHOD: ${{ steps.final_url.outputs.method }}
@@ -216,7 +254,7 @@ jobs:
           bash /tmp/notify.sh "$MSG"
 
       - name: Notify - Build failed
-        if: steps.final_url.outputs.url == 'FAILED' && steps.meta.outputs.has_meta == 'true'
+        if: always() && steps.final_url.outputs.url == 'FAILED' && steps.meta.outputs.has_meta == 'true'
         env:
           APP_NAME: ${{ steps.meta.outputs.app_name }}
           RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}

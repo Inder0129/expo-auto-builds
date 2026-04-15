@@ -1,1 +1,63 @@
-import React,{useState} from 'react';import{StyleSheet,Text,View,TouchableOpacity,Platform}from'react-native';export default function App(){const[display,setDisplay]=useState('0'),[operator,setOperator]=useState(null),[previous,setPrevious]=useState(null),[shouldReset,setShouldReset]=useState(false);const handleNumber=n=>{if(display==='0'||shouldReset){setDisplay(n),setShouldReset(false)}else if(display.length<10){setDisplay(display+n)}};const handleOperator=op=>{if(previous!==null&&operator&&!shouldReset){calculate()}else{setPrevious(display)}setOperator(op),setShouldReset(true)};const calculate=()=>{let result=0,prev=parseFloat(previous),curr=parseFloat(display);switch(operator){case'+':result=prev+curr;break;case'-':result=prev-curr;break;case'*':result=prev*curr;break;case'/':result=curr!==0?prev/curr:0;break;default:return}setDisplay(result.toString()),setShouldReset(true),setOperator(null),setPrevious(null)};const clear=()=>{setDisplay('0'),setOperator(null),setPrevious(null),setShouldReset(false)};const handleDecimal=()=>{if(shouldReset){setDisplay('0.'),setShouldReset(false)}else if(!display.includes('.')){setDisplay(display+'.')}};const deleteLast=()=>{if(display.length>1){setDisplay(display.slice(0,-1))}else{setDisplay('0')}};const Button=({title,onPress,color})=>(<TouchableOpacity onPress={onPress} style={[styles.button,color?{backgroundColor:color}:null]}><Text style={styles.buttonText}>{title}</Text></TouchableOpacity>);return(<View style={styles.container}><View style={styles.display}><Text style={styles.displayText} numberOfLines={1}>{display}</Text></View><View style={styles.row}><Button title="C" onPress={clear} color="#a5a5a5"/><Button title="÷" onPress={()=>handleOperator('/')} color="#ff9f0a"/><Button title="×" onPress={()=>handleOperator('*')} color="#ff9f0a"/><Button title="⌫" onPress={deleteLast} color="#a5a5a5"/></View><View style={styles.row}><Button title="7" onPress={()=>handleNumber('7')}/><Button title="8" onPress={()=>handleNumber('8')}/><Button title="9" onPress={()=>handleNumber('9')}/><Button title="-" onPress={()=>handleOperator('-')} color="#ff9f0a"/></View><View style={styles.row}><Button title="4" onPress={()=>handleNumber('4')}/><Button title="5" onPress={()=>handleNumber('5')}/><Button title="6" onPress={()=>handleNumber('6')}/><Button title="+" onPress={()=>handleOperator('+')} color="#ff9f0a"/></View><View style={styles.row}><Button title="1" onPress={()=>handleNumber('1')}/><Button title="2" onPress={()=>handleNumber('2')}/><Button title="3" onPress={()=>handleNumber('3')}/><Button title="=" onPress={calculate} color="#ff9f0a" style={{flex:1}}/></View><View style={styles.row}><Button title="0" onPress={()=>handleNumber('0')} style={{flex:2}}/><Button title="." onPress={handleDecimal}/></View></View>)}const styles=StyleSheet.create({container:{flex:1,backgroundColor:'#000',paddingTop:Platform.OS==='ios'?40:20,paddingHorizontal:10},display:{flex:1,justifyContent:'flex-end',alignItems:'flex-end',padding:20},displayText:{color:'#fff',fontSize:60},row:{flexDirection:'row',marginBottom:5},button:{flex:1,backgroundColor:'#333',height:80,justifyContent:'center',alignItems:'center',borderRadius:40,margin:5},buttonText:{color:'#fff',fontSize:30}})
+import React, { useState } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
+export default function App() {
+  const [display, setDisplay] = useState('0');
+  const [expr, setExpr] = useState('');
+
+  const press = (btn) => {
+    if (btn === 'C') {
+      setDisplay('0');
+      setExpr('');
+    } else if (btn === '=') {
+      try {
+        const evalExpr = (expr + display).replace(/×/g, '*').replace(/÷/g, '/');
+        const res = eval(evalExpr);
+        setDisplay(res.toString());
+        setExpr('');
+      } catch {
+        setDisplay('Error');
+      }
+    } else if (['+','-','×','÷'].includes(btn)) {
+      setExpr(expr + display + btn);
+      setDisplay('0');
+    } else {
+      setDisplay(display === '0' ? btn : display + btn);
+    }
+  };
+
+  const buttons = [
+    ['C','÷','×','-'],
+    ['7','8','9','+'],
+    ['4','5','6','='],
+    ['1','2','3'],
+    ['0','.']
+  ];
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.display}>{display}</Text>
+      <View style={styles.buttons}>
+        {buttons.flat().map((btn, i) => (
+          <TouchableOpacity
+            key={i}
+            style={[styles.button, btn === '=' && styles.equals, btn === '0' && styles.zero]}
+            onPress={() => press(btn)}
+          >
+            <Text style={styles.buttonText}>{btn}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#000' },
+  display: { color: '#fff', fontSize: 72, textAlign: 'right', padding: 20 },
+  buttons: { flexDirection: 'row', flexWrap: 'wrap' },
+  button: { width: '25%', height: 80, justifyContent: 'center', alignItems: 'center', backgroundColor: '#333' },
+  buttonText: { color: '#fff', fontSize: 24 },
+  equals: { backgroundColor: '#f09a36' },
+  zero: { width: '50%' }
+});
