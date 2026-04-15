@@ -1,15 +1,11 @@
 {
   "expo": {
     "owner": "inder-6284",
-    "slug": "minimal-calculator",
+    "slug": "food-delivery",
     "android": {
-      "package": "com.inder6284.minimalcalc"
+      "package": "com.inder6284.fooddelivery"
     },
-    "name": "minimal-calculator",
-    "version": "1.0.0",
-    "platforms": [
-      "ios",
-      "android"
-    ]
+    "name": "Food Delivery",
+    "version": "1.0.0"
   }
 }

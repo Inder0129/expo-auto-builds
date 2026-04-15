@@ -106,6 +106,10 @@ jobs:
           echo "Attempting EAS Build..."
           echo "--- EAS whoami ---"
           eas whoami 2>&1 || echo "Not logged in to EAS"
+
+          echo "--- Initializing EAS project ---"
+          eas init --non-interactive 2>&1 || echo "eas init failed, continuing..."
+
           echo "--- Starting build ---"
 
           # Run eas build, capture ALL output

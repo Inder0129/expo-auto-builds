@@ -1,18 +1,1 @@
-{
-  "name": "minimal-calculator",
-  "version": "1.0.0",
-  "main": "node_modules/expo/AppEntry.js",
-  "scripts": {
-    "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios"
-  },
-  "dependencies": {
-    "expo": "latest",
-    "react": "*",
-    "react-native": "*"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.20.0"
-  }
-}
+{"name":"food-delivery","version":"1.0.0","main":"node_modules/expo/AppEntry.js","scripts":{"start":"expo start","android":"expo start --android","ios":"expo start --ios"},"dependencies":{"expo":"latest"}}
