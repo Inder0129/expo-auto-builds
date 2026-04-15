@@ -1,19 +1,16 @@
 {
   "expo": {
+    "name": "Food Delivery",
+    "slug": "food-delivery-user",
     "owner": "inder-6284",
-    "name": "QuickBite",
-    "slug": "quickbite",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
-    "assetBundlePatterns": [
-      "**/*"
-    ],
     "ios": {
-      "supportsTablet": false
+      "supportsTablet": true
     },
     "android": {
-      "package": "com.indi.quickbite"
+      "package": "com.fooddelivery.user"
     }
   }
 }
