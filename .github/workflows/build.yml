@@ -140,20 +140,40 @@ jobs:
         if: steps.meta.outputs.has_meta == 'true'
         run: bash /tmp/notify.sh "[4/5] Uploading APK..."
 
-      - name: Upload APK as Artifact
-        uses: actions/upload-artifact@v4
+      - name: Rename APK
+        id: rename
+        run: |
+          APK_SRC="${{ steps.gradle_build.outputs.apk_path }}"
+          APK_NAME="app-release-build-${{ github.run_number }}.apk"
+          cp "$APK_SRC" "$APK_NAME"
+          echo "apk_name=$APK_NAME" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        id: release
+        uses: softprops/action-gh-release@v2
         with:
-          name: app-release-${{ github.run_number }}
-          path: ${{ steps.gradle_build.outputs.apk_path }}
-          retention-days: 30
+          tag_name: v1.0.${{ github.run_number }}
+          name: "Build #${{ github.run_number }} - ${{ steps.meta.outputs.app_name }}"
+          body: "Auto-generated APK build"
+          files: ${{ steps.rename.outputs.apk_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get download URL
+        id: download_url
+        run: |
+          REPO="${{ github.repository }}"
+          TAG="v1.0.${{ github.run_number }}"
+          APK_NAME="${{ steps.rename.outputs.apk_name }}"
+          echo "url=https://github.com/${REPO}/releases/download/${TAG}/${APK_NAME}" >> $GITHUB_OUTPUT
 
       - name: Notify - Success
         if: steps.meta.outputs.has_meta == 'true'
         env:
           APP_NAME: ${{ steps.meta.outputs.app_name }}
-          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          APK_URL: ${{ steps.download_url.outputs.url }}
         run: |
-          bash /tmp/notify.sh "[5/5] APK ready! App: ${APP_NAME} - Download: ${RUN_URL}"
+          bash /tmp/notify.sh "[5/5] APK ready! App: ${APP_NAME} - Download: ${APK_URL}"
 
       - name: Notify - Failed
         if: failure() && steps.meta.outputs.has_meta == 'true'
