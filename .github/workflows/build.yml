@@ -5,7 +5,6 @@ on:
     branches: [main, master]
   workflow_dispatch:
 
-# Cancel any in-progress builds when a new push arrives
 concurrency:
   group: build-${{ github.ref }}
   cancel-in-progress: true
@@ -19,12 +18,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: "npm"
-
       - name: Read build metadata
         id: meta
         run: |
@@ -36,6 +29,40 @@ jobs:
             echo "has_meta=false" >> $GITHUB_OUTPUT
           fi
 
+      # Helper function for Telegram notifications
+      - name: Setup Telegram notifier
+        if: steps.meta.outputs.has_meta == 'true'
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ steps.meta.outputs.chat_id }}
+        run: |
+          cat > /tmp/notify.sh << 'SCRIPT'
+          #!/bin/bash
+          MSG="$1"
+          curl -s -X POST \
+            "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -H "Content-Type: application/json" \
+            -d "{\"chat_id\":\"${CHAT_ID}\",\"text\":\"${MSG}\"}" > /dev/null
+          SCRIPT
+          chmod +x /tmp/notify.sh
+          echo "TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}" >> $GITHUB_ENV
+          echo "CHAT_ID=${CHAT_ID}" >> $GITHUB_ENV
+
+      # --- Progress: Build started ---
+      - name: Notify - Build started
+        if: steps.meta.outputs.has_meta == 'true'
+        run: bash /tmp/notify.sh "[1/6] Build started - Setting up Node.js..."
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # --- Progress: Installing deps ---
+      - name: Notify - Installing dependencies
+        if: steps.meta.outputs.has_meta == 'true'
+        run: bash /tmp/notify.sh "[2/6] Installing dependencies..."
+
       - name: Install dependencies
         run: npm install
 
@@ -45,6 +72,11 @@ jobs:
       - name: Install EAS CLI
         run: npm install -g eas-cli
 
+      # --- Progress: EAS Build ---
+      - name: Notify - Trying EAS Build
+        if: steps.meta.outputs.has_meta == 'true'
+        run: bash /tmp/notify.sh "[3/6] Trying EAS Build (Path A)... This may take 5-15 min."
+
       - name: EAS Build (Path A)
         id: eas_build
         continue-on-error: true
@@ -52,19 +84,13 @@ jobs:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: |
           echo "Attempting EAS Build..."
-
-          # Run eas build and capture output
           if eas build --platform android --profile preview --non-interactive --json 2>eas-error.log | tee eas-output.json; then
-            # Extract the build URL from JSON output
             BUILD_URL=$(jq -r '.[0].artifacts.buildUrl // empty' eas-output.json 2>/dev/null)
-
             if [ -n "$BUILD_URL" ] && [ "$BUILD_URL" != "null" ]; then
               echo "EAS Build succeeded!"
               echo "apk_url=$BUILD_URL" >> $GITHUB_OUTPUT
               echo "success=true" >> $GITHUB_OUTPUT
             else
-              # Build might have finished but URL not in initial output
-              # Try to get it from build ID
               BUILD_ID=$(jq -r '.[0].id // empty' eas-output.json 2>/dev/null)
               if [ -n "$BUILD_ID" ]; then
                 echo "Waiting for build $BUILD_ID to complete..."
@@ -72,7 +98,6 @@ jobs:
                   sleep 30
                   BUILD_INFO=$(eas build:view "$BUILD_ID" --json 2>/dev/null || echo "{}")
                   STATUS=$(echo "$BUILD_INFO" | jq -r '.status // empty')
-
                   if [ "$STATUS" = "finished" ]; then
                     BUILD_URL=$(echo "$BUILD_INFO" | jq -r '.artifacts.buildUrl // empty')
                     echo "apk_url=$BUILD_URL" >> $GITHUB_OUTPUT
@@ -96,6 +121,15 @@ jobs:
             echo "success=false" >> $GITHUB_OUTPUT
           fi
 
+      # --- Progress: EAS result ---
+      - name: Notify - EAS Build succeeded
+        if: steps.eas_build.outputs.success == 'true' && steps.meta.outputs.has_meta == 'true'
+        run: bash /tmp/notify.sh "[4/6] EAS Build succeeded! Preparing download link..."
+
+      - name: Notify - EAS failed, trying Gradle
+        if: steps.eas_build.outputs.success != 'true' && steps.meta.outputs.has_meta == 'true'
+        run: bash /tmp/notify.sh "[4/6] EAS Build failed. Falling back to Gradle build (Path B)..."
+
       # ============================================
       # PATH B: Gradle Build fallback (unlimited)
       # ============================================
@@ -110,10 +144,15 @@ jobs:
         if: steps.eas_build.outputs.success != 'true'
         uses: android-actions/setup-android@v3
 
+      # --- Progress: Gradle building ---
+      - name: Notify - Gradle building
+        if: steps.eas_build.outputs.success != 'true' && steps.meta.outputs.has_meta == 'true'
+        run: bash /tmp/notify.sh "[5/6] Running Expo prebuild + Gradle... This may take 10-20 min."
+
       - name: Expo Prebuild (Gradle fallback)
         if: steps.eas_build.outputs.success != 'true'
         run: |
-          echo "EAS Build failed/unavailable. Falling back to Gradle build..."
+          echo "Running expo prebuild..."
           npx expo prebuild --platform android --no-install
 
       - name: Gradle Build APK (Gradle fallback)
@@ -124,8 +163,6 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleRelease --no-daemon 2>&1 || ./gradlew assembleDebug --no-daemon 2>&1
           cd ..
-
-          # Find the APK
           APK_PATH=$(find android/app/build/outputs/apk -name "*.apk" | head -1)
           if [ -n "$APK_PATH" ]; then
             echo "apk_path=$APK_PATH" >> $GITHUB_OUTPUT
@@ -166,43 +203,23 @@ jobs:
           fi
 
       # ============================================
-      # Notify via Telegram
+      # Final Telegram notification
       # ============================================
-      - name: Send success to Telegram
+      - name: Notify - APK ready
         if: steps.final_url.outputs.url != 'FAILED' && steps.meta.outputs.has_meta == 'true'
         env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          APK_URL: ${{ steps.final_url.outputs.url }}
+          METHOD: ${{ steps.final_url.outputs.method }}
+          APP_NAME: ${{ steps.meta.outputs.app_name }}
         run: |
-          CHAT_ID="${{ steps.meta.outputs.chat_id }}"
-          APP_NAME="${{ steps.meta.outputs.app_name }}"
-          APK_URL="${{ steps.final_url.outputs.url }}"
-          METHOD="${{ steps.final_url.outputs.method }}"
+          MSG="[6/6] Your APK is ready! - App: ${APP_NAME} - Built via: ${METHOD} - Download: ${APK_URL}"
+          bash /tmp/notify.sh "$MSG"
 
-          MESSAGE="Your APK is ready!
-
-App: ${APP_NAME}
-Built via: ${METHOD}
-Download: ${APK_URL}"
-
-          curl -s -X POST \
-            "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
-            -H "Content-Type: application/json" \
-            -d "$(jq -n --arg chat_id "$CHAT_ID" --arg text "$MESSAGE" '{chat_id: $chat_id, text: $text}')"
-
-      - name: Send failure to Telegram
+      - name: Notify - Build failed
         if: steps.final_url.outputs.url == 'FAILED' && steps.meta.outputs.has_meta == 'true'
         env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          APP_NAME: ${{ steps.meta.outputs.app_name }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          CHAT_ID="${{ steps.meta.outputs.chat_id }}"
-          APP_NAME="${{ steps.meta.outputs.app_name }}"
-
-          MESSAGE="Build failed for: ${APP_NAME}
-
-Both EAS Build and Gradle Build failed. Check the Actions log:
-https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-
-          curl -s -X POST \
-            "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
-            -H "Content-Type: application/json" \
-            -d "$(jq -n --arg chat_id "$CHAT_ID" --arg text "$MESSAGE" '{chat_id: $chat_id, text: $text}')"
+          MSG="Build failed for: ${APP_NAME}. Check logs: ${RUN_URL}"
+          bash /tmp/notify.sh "$MSG"
