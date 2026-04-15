@@ -1,1 +1,42 @@
-import React,{useState} from 'react';import {View,Text,TouchableOpacity,StyleSheet} from 'react-native';const buttons=[['7','8','9','/'],['4','5','6','*'],['1','2','3','-'],['0','.','C','+']];export default function App(){const[c,setC]=useState('0'),[p,setP]=useState(''),[o,setO]=useState(null),clear=()=>{setC('0');setP('');setO(null)},add=n=>{if('.'===n&&c.includes('.'))return;setC('0'===c&&'.'!==n?n:c+n)},chooseOp=x=>{c&&(''!==p&&calc(),setO(x),setP(c),setC('0'))},calc=()=>{if(!p||!o)return;const a=parseFloat(p),b=parseFloat(c);let r;switch(o){case'+':r=a+b;break;case'-':r=a-b;break;case'*':r=a*b;break;case'/':r=a/b;break;default:return}setC(r.toString());setO(null);setP('')},handlePress=b=>{'C'===b?clear():['+','-','*','/'].includes(b)?chooseOp(b):'='===b?calc():add(b)};return(<View style={s.container}><View style={s.display}><Text style={s.displayText}>{c}</Text></View><View style={s.buttons}>{buttons.map((r,i)=><View style={s.row} key={i}>{r.map((b,j)=><TouchableOpacity style={'C'===b?s.buttonClear:'+-*/'.includes(b)?s.buttonOp:s.button} onPress={()=>handlePress(b)} key={j}><Text style={s.buttonText}>{b}</Text></TouchableOpacity>)}</View>)}<View style={s.row}><TouchableOpacity style={s.buttonEquals} onPress={()=>handlePress('=')}><Text style={s.buttonText}>=</Text></TouchableOpacity></View></View></View>)}const s=StyleSheet.create({container:{flex:1,backgroundColor:'#000'},display:{flex:2,justifyContent:'center',alignItems:'flex-end',padding:20},displayText:{color:'#fff',fontSize:60},buttons:{flex:8},row:{flex:1,flexDirection:'row'},button:{flex:1,backgroundColor:'#333',justifyContent:'center',alignItems:'center'},buttonOp:{flex:1,backgroundColor:'#f39c12',justifyContent:'center',alignItems:'center'},buttonClear:{flex:1,backgroundColor:'#e74c3c',justifyContent:'center',alignItems:'center'},buttonEquals:{flex:4,backgroundColor:'#2ecc71',justifyContent:'center',alignItems:'center'},buttonText:{color:'#fff',fontSize:30}});
+import React, { useState } from 'react';
+import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
+
+export default function App() {
+  const [num1, setNum1] = useState('');
+  const [num2, setNum2] = useState('');
+  const [result, setResult] = useState(0);
+
+  const calculate = (op) => {
+    const n1 = parseFloat(num1);
+    const n2 = parseFloat(num2);
+    let res = 0;
+    switch(op) {
+      case '+': res = n1 + n2; break;
+      case '-': res = n1 - n2; break;
+      case '*': res = n1 * n2; break;
+      case '/': res = n2 !== 0 ? n1 / n2 : 'Error'; break;
+    }
+    setResult(res);
+  };
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.result}>{result}</Text>
+      <TextInput style={styles.input} keyboardType="numeric" value={num1} onChangeText={setNum1} />
+      <TextInput style={styles.input} keyboardType="numeric" value={num2} onChangeText={setNum2} />
+      <View style={styles.buttons}>
+        <Button title="+" onPress={() => calculate('+')} />
+        <Button title="-" onPress={() => calculate('-')} />
+        <Button title="*" onPress={() => calculate('*')} />
+        <Button title="/" onPress={() => calculate('/')} />
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  result: { fontSize: 40, marginBottom: 20 },
+  input: { width: 200, height: 40, borderColor: 'gray', borderWidth: 1, marginBottom: 10, textAlign: 'center' },
+  buttons: { flexDirection: 'row', justifyContent: 'space-around', width: 200 }
+});

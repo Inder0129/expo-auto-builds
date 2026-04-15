@@ -9,6 +9,9 @@ concurrency:
   group: build-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -101,38 +104,55 @@ jobs:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: |
           echo "Attempting EAS Build..."
-          if eas build --platform android --profile preview --non-interactive --json 2>eas-error.log | tee eas-output.json; then
-            BUILD_URL=$(jq -r '.[0].artifacts.buildUrl // empty' eas-output.json 2>/dev/null)
-            if [ -n "$BUILD_URL" ] && [ "$BUILD_URL" != "null" ]; then
-              echo "EAS Build succeeded!"
+          echo "--- EAS whoami ---"
+          eas whoami 2>&1 || echo "Not logged in to EAS"
+          echo "--- Starting build ---"
+
+          # Run eas build, capture ALL output
+          set +e
+          EAS_OUTPUT=$(eas build --platform android --profile preview --non-interactive --json 2>&1)
+          EAS_EXIT=$?
+          set -e
+
+          echo "EAS exit code: $EAS_EXIT"
+          echo "EAS output:"
+          echo "$EAS_OUTPUT"
+
+          if [ $EAS_EXIT -eq 0 ]; then
+            # Try to parse JSON output
+            BUILD_URL=$(echo "$EAS_OUTPUT" | jq -r '.[0].artifacts.buildUrl // empty' 2>/dev/null)
+            BUILD_ID=$(echo "$EAS_OUTPUT" | jq -r '.[0].id // empty' 2>/dev/null)
+
+            if [ -n "$BUILD_URL" ] && [ "$BUILD_URL" != "null" ] && [ "$BUILD_URL" != "" ]; then
+              echo "EAS Build succeeded with URL!"
               echo "apk_url=$BUILD_URL" >> $GITHUB_OUTPUT
               echo "success=true" >> $GITHUB_OUTPUT
+            elif [ -n "$BUILD_ID" ] && [ "$BUILD_ID" != "null" ] && [ "$BUILD_ID" != "" ]; then
+              echo "Build submitted, ID: $BUILD_ID. Polling for completion..."
+              for i in $(seq 1 60); do
+                sleep 30
+                BUILD_INFO=$(eas build:view "$BUILD_ID" --json 2>&1 || echo "{}")
+                STATUS=$(echo "$BUILD_INFO" | jq -r '.status // empty' 2>/dev/null)
+                echo "Poll $i/60: status=$STATUS"
+                if [ "$STATUS" = "finished" ]; then
+                  BUILD_URL=$(echo "$BUILD_INFO" | jq -r '.artifacts.buildUrl // empty')
+                  echo "apk_url=$BUILD_URL" >> $GITHUB_OUTPUT
+                  echo "success=true" >> $GITHUB_OUTPUT
+                  echo "EAS Build completed!"
+                  break
+                elif [ "$STATUS" = "errored" ]; then
+                  echo "EAS Build errored!"
+                  echo "$BUILD_INFO"
+                  echo "success=false" >> $GITHUB_OUTPUT
+                  break
+                fi
+              done
             else
-              BUILD_ID=$(jq -r '.[0].id // empty' eas-output.json 2>/dev/null)
-              if [ -n "$BUILD_ID" ]; then
-                echo "Waiting for build $BUILD_ID to complete..."
-                for i in $(seq 1 60); do
-                  sleep 30
-                  BUILD_INFO=$(eas build:view "$BUILD_ID" --json 2>/dev/null || echo "{}")
-                  STATUS=$(echo "$BUILD_INFO" | jq -r '.status // empty')
-                  if [ "$STATUS" = "finished" ]; then
-                    BUILD_URL=$(echo "$BUILD_INFO" | jq -r '.artifacts.buildUrl // empty')
-                    echo "apk_url=$BUILD_URL" >> $GITHUB_OUTPUT
-                    echo "success=true" >> $GITHUB_OUTPUT
-                    break
-                  elif [ "$STATUS" = "errored" ]; then
-                    echo "success=false" >> $GITHUB_OUTPUT
-                    break
-                  fi
-                  echo "Build status: $STATUS (attempt $i/60)"
-                done
-              else
-                echo "success=false" >> $GITHUB_OUTPUT
-              fi
+              echo "No build URL or ID found in output"
+              echo "success=false" >> $GITHUB_OUTPUT
             fi
           else
-            echo "EAS Build command failed"
-            cat eas-error.log
+            echo "EAS Build command failed with exit code $EAS_EXIT"
             echo "success=false" >> $GITHUB_OUTPUT
           fi
 
@@ -167,6 +187,24 @@ jobs:
         if: steps.eas_build.outputs.success != 'true'
         continue-on-error: true
         run: |
+          echo "Removing splash/icon config from app.json before prebuild..."
+          python3 -c "
+          import json
+          with open('app.json') as f:
+            data = json.load(f)
+          expo = data.get('expo', data)
+          for key in ['icon', 'splash', 'adaptiveIcon']:
+            expo.pop(key, None)
+          if 'android' in expo:
+            expo['android'].pop('adaptiveIcon', None)
+          if 'ios' in expo:
+            expo['ios'].pop('icon', None)
+          if 'plugins' in expo:
+            expo['plugins'] = [p for p in expo['plugins'] if not (isinstance(p, list) and 'expo-splash-screen' in str(p))]
+          with open('app.json', 'w') as f:
+            json.dump(data if 'expo' in data else {'expo': expo}, f, indent=2)
+          print('Cleaned app.json')
+          "
           echo "Running expo prebuild..."
           npx expo prebuild --platform android --no-install
           echo "prebuild_ok=true" >> $GITHUB_OUTPUT
@@ -219,17 +257,14 @@ jobs:
             echo "No APK found!"
           fi
 
-      - name: Upload APK as Release (Gradle fallback)
+      - name: Upload APK as Artifact
         if: steps.eas_build.outputs.success != 'true' && steps.gradle_build.outputs.success == 'true'
-        id: create_release
-        uses: softprops/action-gh-release@v2
+        id: upload_artifact
+        uses: actions/upload-artifact@v4
         with:
-          tag_name: build-${{ github.run_number }}
-          name: "Build #${{ github.run_number }}"
-          body: "Auto-generated APK build"
-          files: ${{ steps.gradle_build.outputs.apk_path }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: app-build-${{ github.run_number }}
+          path: ${{ steps.gradle_build.outputs.apk_path }}
+          retention-days: 30
 
       # ============================================
       # Final result
@@ -237,12 +272,15 @@ jobs:
       - name: Get final APK URL
         id: final_url
         if: always()
+        env:
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
         run: |
           if [ "${{ steps.eas_build.outputs.success }}" = "true" ]; then
             echo "url=${{ steps.eas_build.outputs.apk_url }}" >> $GITHUB_OUTPUT
             echo "method=EAS Build" >> $GITHUB_OUTPUT
           elif [ "${{ steps.gradle_build.outputs.success }}" = "true" ]; then
-            echo "url=https://github.com/${{ github.repository }}/releases/download/build-${{ github.run_number }}/$(basename ${{ steps.gradle_build.outputs.apk_path }})" >> $GITHUB_OUTPUT
+            echo "url=https://github.com/${REPO}/actions/runs/${RUN_ID}#artifacts" >> $GITHUB_OUTPUT
             echo "method=Gradle Build" >> $GITHUB_OUTPUT
           else
             echo "url=FAILED" >> $GITHUB_OUTPUT

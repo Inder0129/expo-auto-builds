@@ -1,17 +1,15 @@
 {
   "expo": {
     "owner": "inder-6284",
-    "slug": "calculator",
-    "name": "calculator",
+    "slug": "minimal-calculator",
+    "android": {
+      "package": "com.inder6284.minimalcalc"
+    },
+    "name": "minimal-calculator",
     "version": "1.0.0",
-    "orientation": "portrait",
-    "userInterfaceStyle": "light",
     "platforms": [
       "ios",
       "android"
-    ],
-    "android": {
-      "package": "com.inder6284.calculator"
-    }
+    ]
   }
 }
