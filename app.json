@@ -1,16 +1,11 @@
 {
   "expo": {
+    "name": "Calculator",
+    "slug": "calculator",
     "owner": "inder-6284",
-    "slug": "munchbox",
-    "name": "MunchBox",
     "version": "1.0.0",
-    "orientation": "portrait",
     "android": {
-      "package": "com.inder6284.munchbox"
-    },
-    "platforms": [
-      "android",
-      "ios"
-    ]
+      "package": "com.inder6284.calculator"
+    }
   }
 }
