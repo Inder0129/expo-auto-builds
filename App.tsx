@@ -1,66 +1,44 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React from 'react';
+import { SafeAreaView, Text, FlatList, View, StyleSheet } from 'react-native';
 
-export default function Calculator() {
-  const [display, setDisplay] = useState('0');
-  const [memory, setMemory] = useState<number | null>(null);
-  const [op, setOp] = useState<string | null>(null);
-  const [newInput, setNewInput] = useState(false);
+type Restaurant = {
+  id: string;
+  name: string;
+  cuisine: string;
+  rating: string;
+  eta: string;
+};
 
-  const input = (v: string) => {
-    if (newInput) {
-      setDisplay(v);
-      setNewInput(false);
-    } else {
-      setDisplay(display === '0' ? v : display + v);
-    }
-  };
+const restaurants: Restaurant[] = [
+  { id: '1', name: 'Pizza Palace', cuisine: 'Italian', rating: '4.5', eta: '30 min' },
+  { id: '2', name: 'Burger King', cuisine: 'American', rating: '4.2', eta: '25 min' },
+  { id: '3', name: 'Sushi Master', cuisine: 'Japanese', rating: '4.7', eta: '35 min' },
+  { id: '4', name: 'Taco Town', cuisine: 'Mexican', rating: '4.3', eta: '20 min' },
+  { id: '5', name: 'Curry House', cuisine: 'Indian', rating: '4.6', eta: '40 min' }
+];
 
-  const calculate = () => {
-    if (op && memory !== null) {
-      const curr = parseFloat(display);
-      const result = op === '+' ? memory + curr : op === '-' ? memory - curr : op === '*' ? memory * curr : memory / curr;
-      setDisplay(result.toString());
-      setOp(null);
-      setMemory(null);
-      setNewInput(true);
-    }
-  };
-
-  const clear = () => {
-    setDisplay('0');
-    setMemory(null);
-    setOp(null);
-  };
-
+export default function App() {
   return (
-    <View style={s.container}>
-      <Text style={s.display}>{display}</Text>
-      <View style={s.buttons}>
-        {['7','8','9','/','4','5','6','*','1','2','3','-','0','.','C','+','='].map(b => (
-          <TouchableOpacity key={b} style={[s.button, b === '=' && s.equals]} onPress={() => {
-            if (b === 'C') clear();
-            else if (b === '=') calculate();
-            else if (['+','-','*','/'].includes(b)) {
-              setMemory(parseFloat(display));
-              setOp(b);
-              setNewInput(true);
-            } else if (b === '.') setDisplay(display.includes('.') ? display : display + '.');
-            else input(b);
-          }}>
-            <Text style={s.buttonText}>{b}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-    </View>
+    <SafeAreaView style={styles.container}>
+      <Text style={styles.header}>Food Delivery</Text>
+      <FlatList
+        data={restaurants}
+        keyExtractor={item => item.id}
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+            <Text style={styles.name}>{item.name}</Text>
+            <Text style={styles.info}>{item.cuisine} ⭐ {item.rating} • {item.eta}</Text>
+          </View>
+        )}
+      />
+    </SafeAreaView>
   );
 }
 
-const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
-  display: { fontSize: 60, color: '#fff', textAlign: 'right', padding: 20 },
-  buttons: { flexDirection: 'row', flexWrap: 'wrap' },
-  button: { width: '25%', padding: 20, backgroundColor: '#333', alignItems: 'center' },
-  equals: { backgroundColor: '#f50', width: '50%' },
-  buttonText: { fontSize: 30, color: '#fff' },
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#f5f5f5' },
+  header: { fontSize: 24, fontWeight: 'bold', padding: 16, backgroundColor: '#fff' },
+  card: { backgroundColor: '#fff', padding: 16, margin: 8, borderRadius: 8 },
+  name: { fontSize: 18, fontWeight: 'bold' },
+  info: { color: '#666', marginTop: 4 }
 });

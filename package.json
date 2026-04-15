@@ -1,5 +1,5 @@
 {
-  "name": "calculator",
+  "name": "food-delivery",
   "version": "1.0.0",
   "main": "expo/AppEntry.js",
   "scripts": {
@@ -14,8 +14,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
-    "typescript": "^5.1.3",
-    "@types/react": "~18.2.14"
+    "babel-preset-expo": "*"
   },
   "private": true
 }

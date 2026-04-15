@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "Calculator",
-    "slug": "calculator",
+    "name": "Food Delivery",
+    "slug": "food-delivery",
     "owner": "inder-6284",
     "version": "1.0.0",
     "android": {
-      "package": "com.inder6284.calculator"
+      "package": "com.inder6284.fooddelivery"
     }
   }
 }
