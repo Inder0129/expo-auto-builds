@@ -67,7 +67,7 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Install dependencies
-        run: npm install
+        run: npm install --legacy-peer-deps
 
       - name: Fix dependency compatibility
         run: npx expo install --fix 2>&1 || true
@@ -89,7 +89,7 @@ jobs:
 
       - name: Ensure critical dependencies
         run: |
-          npm install babel-preset-expo @babel/core --save-dev 2>&1 || true
+          npm install --legacy-peer-deps babel-preset-expo @babel/core --save-dev 2>&1 || true
 
       - name: Clean app.json and Prebuild
         run: |
