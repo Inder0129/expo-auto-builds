@@ -1,4 +1,4 @@
-name: Build Expo Android APK
+name: Build via Gradle
 
 on:
   push:
@@ -40,11 +40,9 @@ jobs:
         run: |
           cat > /tmp/notify.sh << 'SCRIPT'
           #!/bin/bash
-          MSG="$1"
-          curl -s -X POST \
-            "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
             -H "Content-Type: application/json" \
-            -d "{\"chat_id\":\"${CHAT_ID}\",\"text\":\"${MSG}\"}" > /dev/null
+            -d "{\"chat_id\":\"${CHAT_ID}\",\"text\":\"$1\"}" > /dev/null
           SCRIPT
           chmod +x /tmp/notify.sh
           echo "TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}" >> $GITHUB_ENV
@@ -52,146 +50,45 @@ jobs:
 
       - name: Notify - Build started
         if: steps.meta.outputs.has_meta == 'true'
-        run: bash /tmp/notify.sh "[1/6] Build started - Setting up Node.js..."
+        run: bash /tmp/notify.sh "[1/5] Gradle Build started..."
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Notify - Installing dependencies
-        if: steps.meta.outputs.has_meta == 'true'
-        run: bash /tmp/notify.sh "[2/6] Installing dependencies and fixing compatibility..."
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Fix dependency compatibility
-        run: |
-          echo "Running expo install --fix to resolve compatible versions..."
-          npx expo install --fix 2>&1 || true
-          echo "Running expo-doctor to check compatibility..."
-          npx expo-doctor 2>&1 || true
-          echo "Dependency fix complete"
-
-      # Create dummy assets so prebuild doesn't fail on missing icons
-      - name: Create placeholder assets
-        run: |
-          mkdir -p assets
-          python3 -c "
-          import base64, os
-          png = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAIAAADYYG7QAAAADklEQVRYw+3BAQ0AAADCoPdPbQ43oAAAAIdJREFUeJztwQENAAAAwqD3T20ON6AAAH5tGYAAAU8sLwAAAABJRU5ErkJggg==')
-          for name in ['icon.png', 'splash.png', 'adaptive-icon.png', 'favicon.png']:
-            with open(f'assets/{name}', 'wb') as f:
-              f.write(png)
-          print('Created placeholder assets')
-          "
-
-      # ============================================
-      # PATH A: Try EAS Build first (free tier)
-      # ============================================
-      - name: Install EAS CLI
-        run: npm install -g eas-cli
-
-      - name: Notify - Trying EAS Build
-        if: steps.meta.outputs.has_meta == 'true'
-        run: bash /tmp/notify.sh "[3/6] Trying EAS Build (Path A)... This may take 5-15 min."
-
-      - name: EAS Build (Path A)
-        id: eas_build
-        continue-on-error: true
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-        run: |
-          echo "Attempting EAS Build..."
-          echo "--- EAS whoami ---"
-          eas whoami 2>&1 || echo "Not logged in to EAS"
-
-          echo "--- Initializing EAS project ---"
-          eas init --non-interactive --force 2>&1 || echo "eas init failed, continuing..."
-
-          echo "--- Starting build ---"
-
-          # Run eas build, capture ALL output
-          set +e
-          EAS_OUTPUT=$(eas build --platform android --profile preview --non-interactive --json 2>&1)
-          EAS_EXIT=$?
-          set -e
-
-          echo "EAS exit code: $EAS_EXIT"
-          echo "EAS output:"
-          echo "$EAS_OUTPUT"
-
-          if [ $EAS_EXIT -eq 0 ]; then
-            # Try to parse JSON output
-            BUILD_URL=$(echo "$EAS_OUTPUT" | jq -r '.[0].artifacts.buildUrl // empty' 2>/dev/null)
-            BUILD_ID=$(echo "$EAS_OUTPUT" | jq -r '.[0].id // empty' 2>/dev/null)
-
-            if [ -n "$BUILD_URL" ] && [ "$BUILD_URL" != "null" ] && [ "$BUILD_URL" != "" ]; then
-              echo "EAS Build succeeded with URL!"
-              echo "apk_url=$BUILD_URL" >> $GITHUB_OUTPUT
-              echo "success=true" >> $GITHUB_OUTPUT
-            elif [ -n "$BUILD_ID" ] && [ "$BUILD_ID" != "null" ] && [ "$BUILD_ID" != "" ]; then
-              echo "Build submitted, ID: $BUILD_ID. Polling for completion..."
-              for i in $(seq 1 60); do
-                sleep 30
-                BUILD_INFO=$(eas build:view "$BUILD_ID" --json 2>&1 || echo "{}")
-                STATUS=$(echo "$BUILD_INFO" | jq -r '.status // empty' 2>/dev/null)
-                echo "Poll $i/60: status=$STATUS"
-                if [ "$STATUS" = "finished" ]; then
-                  BUILD_URL=$(echo "$BUILD_INFO" | jq -r '.artifacts.buildUrl // empty')
-                  echo "apk_url=$BUILD_URL" >> $GITHUB_OUTPUT
-                  echo "success=true" >> $GITHUB_OUTPUT
-                  echo "EAS Build completed!"
-                  break
-                elif [ "$STATUS" = "errored" ]; then
-                  echo "EAS Build errored!"
-                  echo "$BUILD_INFO"
-                  echo "success=false" >> $GITHUB_OUTPUT
-                  break
-                fi
-              done
-            else
-              echo "No build URL or ID found in output"
-              echo "success=false" >> $GITHUB_OUTPUT
-            fi
-          else
-            echo "EAS Build command failed with exit code $EAS_EXIT"
-            echo "success=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Notify - EAS Build succeeded
-        if: steps.eas_build.outputs.success == 'true' && steps.meta.outputs.has_meta == 'true'
-        run: bash /tmp/notify.sh "[4/6] EAS Build succeeded! Preparing download link..."
-
-      - name: Notify - EAS failed, trying Gradle
-        if: steps.eas_build.outputs.success != 'true' && steps.meta.outputs.has_meta == 'true'
-        run: bash /tmp/notify.sh "[4/6] EAS Build failed. Falling back to Gradle build (Path B)..."
-
-      # ============================================
-      # PATH B: Gradle Build fallback (unlimited)
-      # ============================================
-      - name: Setup Java (Gradle fallback)
-        if: steps.eas_build.outputs.success != 'true'
+      - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: "temurin"
           java-version: "17"
 
-      - name: Setup Android SDK (Gradle fallback)
-        if: steps.eas_build.outputs.success != 'true'
+      - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Notify - Gradle building
-        if: steps.eas_build.outputs.success != 'true' && steps.meta.outputs.has_meta == 'true'
-        run: bash /tmp/notify.sh "[5/6] Running Expo prebuild + Gradle... This may take 10-20 min."
+      - name: Install dependencies
+        run: npm install
 
-      - name: Expo Prebuild (Gradle fallback)
-        id: prebuild
-        if: steps.eas_build.outputs.success != 'true'
-        continue-on-error: true
+      - name: Fix dependency compatibility
+        run: npx expo install --fix 2>&1 || true
+
+      - name: Create placeholder assets
         run: |
-          echo "Removing splash/icon config from app.json before prebuild..."
+          mkdir -p assets
+          python3 -c "
+          import base64
+          png = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAIAAADYYG7QAAAADklEQVRYw+3BAQ0AAADCoPdPbQ43oAAAAIdJREFUeJztwQENAAAAwqD3T20ON6AAAH5tGYAAAU8sLwAAAABJRU5ErkJggg==')
+          for name in ['icon.png', 'splash.png', 'adaptive-icon.png', 'favicon.png']:
+            with open(f'assets/{name}', 'wb') as f:
+              f.write(png)
+          "
+
+      - name: Notify - Prebuild
+        if: steps.meta.outputs.has_meta == 'true'
+        run: bash /tmp/notify.sh "[2/5] Running Expo prebuild..."
+
+      - name: Clean app.json and Prebuild
+        run: |
           python3 -c "
           import json
           with open('app.json') as f:
@@ -201,66 +98,30 @@ jobs:
             expo.pop(key, None)
           if 'android' in expo:
             expo['android'].pop('adaptiveIcon', None)
-          if 'ios' in expo:
-            expo['ios'].pop('icon', None)
           if 'plugins' in expo:
             expo['plugins'] = [p for p in expo['plugins'] if not (isinstance(p, list) and 'expo-splash-screen' in str(p))]
           with open('app.json', 'w') as f:
             json.dump(data if 'expo' in data else {'expo': expo}, f, indent=2)
-          print('Cleaned app.json')
           "
-          echo "Running expo prebuild..."
           npx expo prebuild --platform android --no-install
-          echo "prebuild_ok=true" >> $GITHUB_OUTPUT
 
-      - name: Notify - Prebuild failed
-        if: steps.prebuild.outcome == 'failure' && steps.meta.outputs.has_meta == 'true'
-        run: bash /tmp/notify.sh "[5/6] Expo prebuild failed. Trying to fix and retry..."
-
-      - name: Fix app.json and retry prebuild
-        id: prebuild_retry
-        if: steps.prebuild.outcome == 'failure'
-        continue-on-error: true
+      - name: Setup release signing
         run: |
-          echo "Fixing app.json - removing problematic asset references..."
-          python3 -c "
-          import json
-          with open('app.json') as f:
-            data = json.load(f)
-          expo = data.get('expo', data)
-          for key in ['icon', 'splash', 'adaptiveIcon']:
-            expo.pop(key, None)
-          if 'android' in expo:
-            expo['android'].pop('adaptiveIcon', None)
-          if 'ios' in expo:
-            expo['ios'].pop('icon', None)
-          with open('app.json', 'w') as f:
-            json.dump(data if 'expo' in data else {'expo': expo}, f, indent=2)
-          print('Fixed app.json')
-          "
-          npx expo prebuild --platform android --no-install --clean
-          echo "prebuild_ok=true" >> $GITHUB_OUTPUT
-
-      - name: Setup debug keystore for release signing
-        if: steps.eas_build.outputs.success != 'true' && (steps.prebuild.outputs.prebuild_ok == 'true' || steps.prebuild_retry.outputs.prebuild_ok == 'true')
-        run: |
-          # Generate a debug keystore for signing release builds
           keytool -genkeypair -v \
             -keystore android/app/release-key.keystore \
             -alias release-key \
             -keyalg RSA -keysize 2048 -validity 10000 \
             -storepass android -keypass android \
             -dname "CN=Auto Builder,OU=Dev,O=AutoExpo,L=City,S=State,C=US"
-
-          # Configure release signing in app/build.gradle
           cd android/app
           sed -i '/android {/a\    signingConfigs {\n        release {\n            storeFile file("release-key.keystore")\n            storePassword "android"\n            keyAlias "release-key"\n            keyPassword "android"\n        }\n    }' build.gradle
           sed -i 's/signingConfig signingConfigs.debug/signingConfig signingConfigs.release/' build.gradle
-          cd ../..
-          echo "Release signing configured with debug keystore"
 
-      - name: Gradle Build APK (Gradle fallback)
-        if: steps.eas_build.outputs.success != 'true' && (steps.prebuild.outputs.prebuild_ok == 'true' || steps.prebuild_retry.outputs.prebuild_ok == 'true')
+      - name: Notify - Gradle building
+        if: steps.meta.outputs.has_meta == 'true'
+        run: bash /tmp/notify.sh "[3/5] Building APK with Gradle... (10-20 min)"
+
+      - name: Gradle assembleRelease
         id: gradle_build
         run: |
           cd android
@@ -270,58 +131,32 @@ jobs:
           APK_PATH=$(find android/app/build/outputs/apk/release -name "*.apk" | head -1)
           if [ -n "$APK_PATH" ]; then
             echo "apk_path=$APK_PATH" >> $GITHUB_OUTPUT
-            echo "success=true" >> $GITHUB_OUTPUT
             echo "APK built: $APK_PATH"
           else
-            echo "success=false" >> $GITHUB_OUTPUT
-            echo "No APK found!"
+            echo "No APK found!"; exit 1
           fi
 
+      - name: Notify - Uploading
+        if: steps.meta.outputs.has_meta == 'true'
+        run: bash /tmp/notify.sh "[4/5] Uploading APK..."
+
       - name: Upload APK as Artifact
-        if: steps.eas_build.outputs.success != 'true' && steps.gradle_build.outputs.success == 'true'
-        id: upload_artifact
         uses: actions/upload-artifact@v4
         with:
-          name: app-build-${{ github.run_number }}
+          name: app-release-${{ github.run_number }}
           path: ${{ steps.gradle_build.outputs.apk_path }}
           retention-days: 30
 
-      # ============================================
-      # Final result
-      # ============================================
-      - name: Get final APK URL
-        id: final_url
-        if: always()
-        env:
-          REPO: ${{ github.repository }}
-          RUN_ID: ${{ github.run_id }}
-        run: |
-          if [ "${{ steps.eas_build.outputs.success }}" = "true" ]; then
-            echo "url=${{ steps.eas_build.outputs.apk_url }}" >> $GITHUB_OUTPUT
-            echo "method=EAS Build" >> $GITHUB_OUTPUT
-          elif [ "${{ steps.gradle_build.outputs.success }}" = "true" ]; then
-            echo "url=https://github.com/${REPO}/actions/runs/${RUN_ID}#artifacts" >> $GITHUB_OUTPUT
-            echo "method=Gradle Build" >> $GITHUB_OUTPUT
-          else
-            echo "url=FAILED" >> $GITHUB_OUTPUT
-            echo "method=none" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Notify - APK ready
-        if: always() && steps.final_url.outputs.url != 'FAILED' && steps.meta.outputs.has_meta == 'true'
-        env:
-          APK_URL: ${{ steps.final_url.outputs.url }}
-          METHOD: ${{ steps.final_url.outputs.method }}
-          APP_NAME: ${{ steps.meta.outputs.app_name }}
-        run: |
-          MSG="[6/6] Your APK is ready! - App: ${APP_NAME} - Built via: ${METHOD} - Download: ${APK_URL}"
-          bash /tmp/notify.sh "$MSG"
-
-      - name: Notify - Build failed
-        if: always() && steps.final_url.outputs.url == 'FAILED' && steps.meta.outputs.has_meta == 'true'
+      - name: Notify - Success
+        if: steps.meta.outputs.has_meta == 'true'
         env:
           APP_NAME: ${{ steps.meta.outputs.app_name }}
           RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: |
-          MSG="Build failed for: ${APP_NAME}. Check logs: ${RUN_URL}"
-          bash /tmp/notify.sh "$MSG"
+        run: bash /tmp/notify.sh "[5/5] APK ready! App: ${APP_NAME} - Download: ${RUN_URL}#artifacts"
+
+      - name: Notify - Failed
+        if: failure() && steps.meta.outputs.has_meta == 'true'
+        env:
+          APP_NAME: ${{ steps.meta.outputs.app_name }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: bash /tmp/notify.sh "Gradle Build failed for: ${APP_NAME}. Logs: ${RUN_URL}"
