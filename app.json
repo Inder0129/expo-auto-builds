@@ -1,11 +1,12 @@
 {
   "expo": {
     "name": "Calculator",
-    "slug": "calculator",
+    "slug": "calculator-app",
     "owner": "inder-6284",
     "version": "1.0.0",
     "orientation": "portrait",
     "platforms": [
+      "ios",
       "android"
     ],
     "android": {

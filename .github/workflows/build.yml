@@ -197,21 +197,15 @@ jobs:
         if: steps.eas_build.outputs.success != 'true' && (steps.prebuild.outputs.prebuild_ok == 'true' || steps.prebuild_retry.outputs.prebuild_ok == 'true')
         run: |
           echo "Fixing Kotlin/Compose version compatibility..."
-          # Pin Kotlin version in build.gradle to match Compose Compiler
+          # Pin Kotlin version to 1.9.25 in root build.gradle
           if [ -f android/build.gradle ]; then
-            sed -i 's/kotlinVersion = .*/kotlinVersion = "1.9.25"/' android/build.gradle
-            # Also add suppressKotlinVersionCompatibilityCheck if needed
-            if grep -q "compose" android/app/build.gradle 2>/dev/null; then
-              echo "" >> android/app/gradle.properties 2>/dev/null || true
-            fi
+            sed -i 's/kotlinVersion = "[^"]*"/kotlinVersion = "1.9.25"/' android/build.gradle
+            # Also check for buildscript ext
+            sed -i 's/kotlin_version = "[^"]*"/kotlin_version = "1.9.25"/' android/build.gradle
           fi
-          # Suppress Kotlin compatibility check via gradle properties
+          # Suppress Kotlin version check via gradle.properties
+          echo "" >> android/gradle.properties
           echo "kotlin.suppress.gradle.plugin.errors=true" >> android/gradle.properties
-          echo "android.suppressKotlinVersionCompatibilityCheck=true" >> android/gradle.properties
-          # Also try setting in the app build.gradle
-          if [ -f android/app/build.gradle ]; then
-            sed -i '/android {/a\    kotlinOptions { suppressFreeCompilerArgs = true }' android/app/build.gradle 2>/dev/null || true
-          fi
           echo "Kotlin fix applied"
 
       - name: Gradle Build APK (Gradle fallback)
@@ -221,8 +215,8 @@ jobs:
           cd android
           chmod +x gradlew
           # Try release first, then debug
-          ./gradlew assembleRelease --no-daemon -PsuppressKotlinVersionCompatibilityCheck=true 2>&1 || \
-          ./gradlew assembleDebug --no-daemon -PsuppressKotlinVersionCompatibilityCheck=true 2>&1
+          ./gradlew assembleRelease --no-daemon 2>&1 || \
+          ./gradlew assembleDebug --no-daemon 2>&1
           cd ..
           APK_PATH=$(find android/app/build/outputs/apk -name "*.apk" | head -1)
           if [ -n "$APK_PATH" ]; then
