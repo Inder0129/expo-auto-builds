@@ -1,0 +1,15 @@
+{
+  "expo": {
+    "name": "CalcZone",
+    "slug": "calczone",
+    "owner": "inder-6284",
+    "scheme": "calczone",
+    "android": {
+      "package": "com.inder-6284.calczone"
+    },
+    "plugins": [
+      "expo-router",
+      "react-native-reanimated/plugin"
+    ]
+  }
+}
