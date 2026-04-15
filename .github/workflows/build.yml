@@ -58,19 +58,25 @@ jobs:
 
       - name: Notify - Installing dependencies
         if: steps.meta.outputs.has_meta == 'true'
-        run: bash /tmp/notify.sh "[2/6] Installing dependencies..."
+        run: bash /tmp/notify.sh "[2/6] Installing dependencies and fixing compatibility..."
 
       - name: Install dependencies
         run: npm install
+
+      - name: Fix dependency compatibility
+        run: |
+          echo "Running expo install --fix to resolve compatible versions..."
+          npx expo install --fix 2>&1 || true
+          echo "Running expo-doctor to check compatibility..."
+          npx expo-doctor 2>&1 || true
+          echo "Dependency fix complete"
 
       # Create dummy assets so prebuild doesn't fail on missing icons
       - name: Create placeholder assets
         run: |
           mkdir -p assets
-          # Create a 1x1 transparent PNG for icon and splash
           python3 -c "
           import base64, os
-          # Minimal valid 48x48 PNG (solid color)
           png = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAIAAADYYG7QAAAADklEQVRYw+3BAQ0AAADCoPdPbQ43oAAAAIdJREFUeJztwQENAAAAwqD3T20ON6AAAH5tGYAAAU8sLwAAAABJRU5ErkJggg==')
           for name in ['icon.png', 'splash.png', 'adaptive-icon.png', 'favicon.png']:
             with open(f'assets/{name}', 'wb') as f:
@@ -192,21 +198,6 @@ jobs:
           "
           npx expo prebuild --platform android --no-install --clean
           echo "prebuild_ok=true" >> $GITHUB_OUTPUT
-
-      - name: Fix Kotlin version compatibility
-        if: steps.eas_build.outputs.success != 'true' && (steps.prebuild.outputs.prebuild_ok == 'true' || steps.prebuild_retry.outputs.prebuild_ok == 'true')
-        run: |
-          echo "Fixing Kotlin/Compose version compatibility..."
-          # Pin Kotlin version to 1.9.25 in root build.gradle
-          if [ -f android/build.gradle ]; then
-            sed -i 's/kotlinVersion = "[^"]*"/kotlinVersion = "1.9.25"/' android/build.gradle
-            # Also check for buildscript ext
-            sed -i 's/kotlin_version = "[^"]*"/kotlin_version = "1.9.25"/' android/build.gradle
-          fi
-          # Suppress Kotlin version check via gradle.properties
-          echo "" >> android/gradle.properties
-          echo "kotlin.suppress.gradle.plugin.errors=true" >> android/gradle.properties
-          echo "Kotlin fix applied"
 
       - name: Gradle Build APK (Gradle fallback)
         if: steps.eas_build.outputs.success != 'true' && (steps.prebuild.outputs.prebuild_ok == 'true' || steps.prebuild_retry.outputs.prebuild_ok == 'true')
