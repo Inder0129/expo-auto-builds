@@ -152,11 +152,13 @@ jobs:
         env:
           APP_NAME: ${{ steps.meta.outputs.app_name }}
           RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: bash /tmp/notify.sh "[5/5] APK ready! App: ${APP_NAME} - Download: ${RUN_URL}#artifacts"
+        run: |
+          bash /tmp/notify.sh "[5/5] APK ready! App: ${APP_NAME} - Download: ${RUN_URL}"
 
       - name: Notify - Failed
         if: failure() && steps.meta.outputs.has_meta == 'true'
         env:
           APP_NAME: ${{ steps.meta.outputs.app_name }}
           RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: bash /tmp/notify.sh "Gradle Build failed for: ${APP_NAME}. Logs: ${RUN_URL}"
+        run: |
+          bash /tmp/notify.sh "Gradle Build failed for: ${APP_NAME}. Logs: ${RUN_URL}"
