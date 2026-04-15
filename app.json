@@ -1,11 +1,19 @@
 {
   "expo": {
     "owner": "inder-6284",
-    "slug": "food-delivery",
-    "android": {
-      "package": "com.inder6284.fooddelivery"
+    "name": "QuickBite",
+    "slug": "quickbite",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": false
     },
-    "name": "Food Delivery",
-    "version": "1.0.0"
+    "android": {
+      "package": "com.indi.quickbite"
+    }
   }
 }

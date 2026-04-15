@@ -108,7 +108,7 @@ jobs:
           eas whoami 2>&1 || echo "Not logged in to EAS"
 
           echo "--- Initializing EAS project ---"
-          eas init --non-interactive 2>&1 || echo "eas init failed, continuing..."
+          eas init --non-interactive --force 2>&1 || echo "eas init failed, continuing..."
 
           echo "--- Starting build ---"
 
@@ -241,17 +241,33 @@ jobs:
           npx expo prebuild --platform android --no-install --clean
           echo "prebuild_ok=true" >> $GITHUB_OUTPUT
 
+      - name: Setup debug keystore for release signing
+        if: steps.eas_build.outputs.success != 'true' && (steps.prebuild.outputs.prebuild_ok == 'true' || steps.prebuild_retry.outputs.prebuild_ok == 'true')
+        run: |
+          # Generate a debug keystore for signing release builds
+          keytool -genkeypair -v \
+            -keystore android/app/release-key.keystore \
+            -alias release-key \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass android -keypass android \
+            -dname "CN=Auto Builder,OU=Dev,O=AutoExpo,L=City,S=State,C=US"
+
+          # Configure release signing in app/build.gradle
+          cd android/app
+          sed -i '/android {/a\    signingConfigs {\n        release {\n            storeFile file("release-key.keystore")\n            storePassword "android"\n            keyAlias "release-key"\n            keyPassword "android"\n        }\n    }' build.gradle
+          sed -i 's/signingConfig signingConfigs.debug/signingConfig signingConfigs.release/' build.gradle
+          cd ../..
+          echo "Release signing configured with debug keystore"
+
       - name: Gradle Build APK (Gradle fallback)
         if: steps.eas_build.outputs.success != 'true' && (steps.prebuild.outputs.prebuild_ok == 'true' || steps.prebuild_retry.outputs.prebuild_ok == 'true')
         id: gradle_build
         run: |
           cd android
           chmod +x gradlew
-          # Try release first, then debug
-          ./gradlew assembleRelease --no-daemon 2>&1 || \
-          ./gradlew assembleDebug --no-daemon 2>&1
+          ./gradlew assembleRelease --no-daemon 2>&1
           cd ..
-          APK_PATH=$(find android/app/build/outputs/apk -name "*.apk" | head -1)
+          APK_PATH=$(find android/app/build/outputs/apk/release -name "*.apk" | head -1)
           if [ -n "$APK_PATH" ]; then
             echo "apk_path=$APK_PATH" >> $GITHUB_OUTPUT
             echo "success=true" >> $GITHUB_OUTPUT
