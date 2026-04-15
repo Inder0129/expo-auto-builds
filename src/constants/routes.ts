@@ -1,3 +1,3 @@
 export const routes = {
-  main: ['calculator', 'history'],
+  main: ['calculator', 'history', 'error'],
 };
