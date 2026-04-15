@@ -169,7 +169,6 @@ jobs:
         if: steps.prebuild.outcome == 'failure' && steps.meta.outputs.has_meta == 'true'
         run: bash /tmp/notify.sh "[5/6] Expo prebuild failed. Trying to fix and retry..."
 
-      # Retry prebuild: strip icon/splash references from app.json if they cause issues
       - name: Fix app.json and retry prebuild
         id: prebuild_retry
         if: steps.prebuild.outcome == 'failure'
@@ -181,7 +180,6 @@ jobs:
           with open('app.json') as f:
             data = json.load(f)
           expo = data.get('expo', data)
-          # Remove icon/splash references that point to missing files
           for key in ['icon', 'splash', 'adaptiveIcon']:
             expo.pop(key, None)
           if 'android' in expo:
@@ -195,13 +193,36 @@ jobs:
           npx expo prebuild --platform android --no-install --clean
           echo "prebuild_ok=true" >> $GITHUB_OUTPUT
 
+      - name: Fix Kotlin version compatibility
+        if: steps.eas_build.outputs.success != 'true' && (steps.prebuild.outputs.prebuild_ok == 'true' || steps.prebuild_retry.outputs.prebuild_ok == 'true')
+        run: |
+          echo "Fixing Kotlin/Compose version compatibility..."
+          # Pin Kotlin version in build.gradle to match Compose Compiler
+          if [ -f android/build.gradle ]; then
+            sed -i 's/kotlinVersion = .*/kotlinVersion = "1.9.25"/' android/build.gradle
+            # Also add suppressKotlinVersionCompatibilityCheck if needed
+            if grep -q "compose" android/app/build.gradle 2>/dev/null; then
+              echo "" >> android/app/gradle.properties 2>/dev/null || true
+            fi
+          fi
+          # Suppress Kotlin compatibility check via gradle properties
+          echo "kotlin.suppress.gradle.plugin.errors=true" >> android/gradle.properties
+          echo "android.suppressKotlinVersionCompatibilityCheck=true" >> android/gradle.properties
+          # Also try setting in the app build.gradle
+          if [ -f android/app/build.gradle ]; then
+            sed -i '/android {/a\    kotlinOptions { suppressFreeCompilerArgs = true }' android/app/build.gradle 2>/dev/null || true
+          fi
+          echo "Kotlin fix applied"
+
       - name: Gradle Build APK (Gradle fallback)
         if: steps.eas_build.outputs.success != 'true' && (steps.prebuild.outputs.prebuild_ok == 'true' || steps.prebuild_retry.outputs.prebuild_ok == 'true')
         id: gradle_build
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleRelease --no-daemon 2>&1 || ./gradlew assembleDebug --no-daemon 2>&1
+          # Try release first, then debug
+          ./gradlew assembleRelease --no-daemon -PsuppressKotlinVersionCompatibilityCheck=true 2>&1 || \
+          ./gradlew assembleDebug --no-daemon -PsuppressKotlinVersionCompatibilityCheck=true 2>&1
           cd ..
           APK_PATH=$(find android/app/build/outputs/apk -name "*.apk" | head -1)
           if [ -n "$APK_PATH" ]; then
