@@ -1,0 +1,16 @@
+import React from 'react';
+import { Provider } from 'react-redux';
+import { store } from '../store';
+import { ThemeProvider } from '@emotion/react';
+import { theme } from '../theme';
+
+const App = () => {
+  return (
+    <Provider store={store}>
+      <ThemeProvider theme={theme}>
+        {/* App content */}
+      </ThemeProvider>
+    </Provider>
+  );
+};
+export default App;

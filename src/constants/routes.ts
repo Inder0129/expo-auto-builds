@@ -1,0 +1,3 @@
+export const routes = {
+  root: ['home', 'history', 'settings']
+};
