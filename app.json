@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "welcome-message",
+    "slug": "welcome-message",
+    "owner": "inder-6284",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.inder6284.welcomemessage"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
