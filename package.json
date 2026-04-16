@@ -1,1 +1,0 @@
-{"name":"calculator","version":"1.0.0","private":true,"dependencies":{"@reduxjs/toolkit":"latest","expo":"latest","react-redux":"latest"},"devDependencies":{"babel-preset-expo":"latest"}}
