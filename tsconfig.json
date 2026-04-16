@@ -1,0 +1,1 @@
+{"compilerOptions": {"target": "esnext", "module": "commonjs", "moduleResolution": "node", "allowSyntheticDefaultImports": true}}
