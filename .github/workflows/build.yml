@@ -121,6 +121,12 @@ jobs:
           sed -i '/android {/a\    signingConfigs {\n        release {\n            storeFile file("release-key.keystore")\n            storePassword "android"\n            keyAlias "release-key"\n            keyPassword "android"\n        }\n    }' build.gradle
           sed -i 's/signingConfig signingConfigs.debug/signingConfig signingConfigs.release/' build.gradle
 
+      - name: Make node visible to Gradle
+        run: |
+          # Gradle's Process.execute() doesn't use shell PATH, so node must be in a standard location
+          sudo ln -sf "$(which node)" /usr/local/bin/node
+          echo "Node linked: $(node --version) at $(which node)"
+
       - name: Notify - Gradle building
         if: steps.meta.outputs.has_meta == 'true'
         run: bash /tmp/notify.sh "[3/5] Building APK with Gradle... (10-20 min)"
