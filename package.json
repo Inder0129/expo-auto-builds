@@ -1,1 +1,0 @@
-{"name": "calculator", "version": "1.0.0", "dependencies": {"@reduxjs/toolkit": "latest"}, "devDependencies": {"@types/redux": "latest"}}
