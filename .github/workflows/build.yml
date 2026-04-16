@@ -127,6 +127,23 @@ jobs:
           sudo ln -sf "$(which node)" /usr/local/bin/node
           echo "Node linked: $(node --version) at $(which node)"
 
+      - name: Fix settings.gradle node resolution
+        run: |
+          # Verify node can resolve modules from android/ directory
+          cd android
+          if ! node --print "require.resolve('expo/package.json')" 2>/dev/null; then
+            echo "Node module resolution failed from android/. Patching settings.gradle..."
+            cd ..
+            # Replace execute(null, rootDir) with execute(null, file("..")) to resolve from project root
+            sed -i 's|\.execute(null, rootDir)|.execute(null, new File(rootDir, ".."))|g' android/settings.gradle
+            # Also handle cases without rootDir argument
+            sed -i 's|\.execute()|.execute(null, new File(settings.rootDir, ".."))|g' android/settings.gradle
+            echo "Patched settings.gradle:"
+            cat android/settings.gradle
+          else
+            echo "Node resolution OK from android/"
+          fi
+
       - name: Notify - Gradle building
         if: steps.meta.outputs.has_meta == 'true'
         run: bash /tmp/notify.sh "[3/5] Building APK with Gradle... (10-20 min)"
