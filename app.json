@@ -1,0 +1,18 @@
+{
+  "expo": {
+    "name": "calculator",
+    "slug": "calculator",
+    "owner": "inder-6284",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "scheme": "calculator",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.inder6284.calculator"
+    }
+  }
+}
