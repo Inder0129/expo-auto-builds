@@ -1,1 +1,0 @@
-import React from 'react'; import { SafeAreaView, useThemedStyles } from '@/theme'; export const WrapperView: React.FC = ({ children }) => { const styles = useThemedStyles(); return <SafeAreaView style={styles.wrapper}>{children}</SafeAreaView>; };

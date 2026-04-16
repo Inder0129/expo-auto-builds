@@ -1,1 +1,0 @@
-{"name": "calculator", "version": "1.0.0", "scripts": {"start": "expo start"}, "dependencies": {"expo": "latest"}, "devDependencies": {"babel-preset-expo": "latest"}}
