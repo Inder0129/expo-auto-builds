@@ -14,13 +14,19 @@
       "supportsTablet": true
     },
     "android": {
-      "package": "com.inder6284.calculator"
+      "package": "com.inder6284.calculator",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FFFFFF"
+      }
     },
     "web": {
       "favicon": null
     },
     "plugins": [
       "expo-router"
-    ]
+    ],
+    "newArchEnabled": false
   }
 }
