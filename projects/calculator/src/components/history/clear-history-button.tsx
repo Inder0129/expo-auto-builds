@@ -1,5 +1,5 @@
-import { Button } from '@/src/components/ui';
-import { colors } from '@/src/theme/colors';
+import { Button } from '../ui/button';
+import { colors } from '../../theme/colors';
 
 type ClearHistoryButtonProps = {
   onPress: () => void;

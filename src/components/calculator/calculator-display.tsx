@@ -1,7 +1,7 @@
 import { Text, View } from 'react-native';
-import { typography } from '@/src/theme/typography';
-import { colors } from '@/src/theme/colors';
-import { spacing } from '@/src/theme/spacing';
+import { typography } from '../../theme/typography';
+import { colors } from '../../theme/colors';
+import { spacing } from '../../theme/spacing';
 import { StyleSheet } from 'react-native';
 
 type CalculatorDisplayProps = {

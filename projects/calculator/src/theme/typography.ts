@@ -1,18 +1,30 @@
 export const typography = {
-  h1: {
-    fontSize: 32,
-    fontWeight: 'bold' as const,
+  display: {
+    fontSize: 48,
+    fontWeight: '300',
   },
-  h2: {
-    fontSize: 24,
-    fontWeight: '600' as const,
+  title: {
+    fontSize: 34,
+    fontWeight: '700',
+  },
+  subtitle: {
+    fontSize: 20,
+    fontWeight: '600',
   },
   body: {
-    fontSize: 16,
-    fontWeight: 'normal' as const,
+    fontSize: 17,
+    fontWeight: '400',
+  },
+  bodyBold: {
+    fontSize: 17,
+    fontWeight: '600',
   },
   caption: {
-    fontSize: 12,
-    fontWeight: 'normal' as const,
+    fontSize: 15,
+    fontWeight: '400',
+  },
+  button: {
+    fontSize: 17,
+    fontWeight: '600',
   },
 };

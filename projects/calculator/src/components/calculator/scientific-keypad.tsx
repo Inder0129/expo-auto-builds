@@ -1,7 +1,7 @@
 import { View } from 'react-native';
-import { Button } from '@/src/components/ui';
-import { colors } from '@/src/theme/colors';
-import { spacing } from '@/src/theme/spacing';
+import { Button } from '../ui/button';
+import { colors } from '../../theme/colors';
+import { spacing } from '../../theme/spacing';
 import { StyleSheet } from 'react-native';
 
 type ScientificKeypadProps = {
