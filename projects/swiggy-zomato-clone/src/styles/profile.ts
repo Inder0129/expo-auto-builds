@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { colors, spacing, typography } from '@/src/theme';
+import { colors, spacing } from '../theme';
 
 export default StyleSheet.create({
   container: {
@@ -7,16 +7,15 @@ export default StyleSheet.create({
     backgroundColor: colors.background,
   },
   section: {
-    marginTop: spacing.lg,
-    paddingHorizontal: spacing.md,
+    margin: spacing.md,
   },
   logoutContainer: {
     padding: spacing.md,
+    backgroundColor: colors.surface,
     borderTopWidth: 1,
     borderTopColor: colors.border,
-    backgroundColor: colors.surface,
   },
   logoutButton: {
-    marginTop: spacing.sm,
+    width: '100%',
   },
 });

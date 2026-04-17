@@ -1,16 +1,9 @@
 import { StyleSheet } from 'react-native';
-import { spacing } from '@/src/theme';
+import { colors, spacing } from '../theme';
 
 export default StyleSheet.create({
   container: {
     flex: 1,
-  },
-  section: {
-    marginBottom: spacing.lg,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: spacing.md,
+    backgroundColor: colors.background,
   },
 });

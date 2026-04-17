@@ -1,44 +1,103 @@
-import React, { useCallback } from 'react';
-import { View, ScrollView, Text } from 'react-native';
-import { Link } from 'expo-router';
-import { ProfileHeader } from '@/src/components/profile/profile-header';
-import { StatsGrid } from '@/src/components/profile/stats-grid';
-import { SettingsList } from '@/src/components/profile/settings-list';
-import { WrapperView } from '@/src/components/ui';
+import React, { useCallback, useState } from 'react';
+import { View, ScrollView, Alert } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useAppSelector, useAppDispatch } from '@/src/store/hooks';
-import { selectUser } from '@/src/store/slices/auth';
-import { selectStudyStats } from '@/src/store/slices/study';
 import { logout } from '@/src/store/slices/auth';
+import { ProfileHeader } from '@/src/components/profile/ProfileHeader';
+import { ProfileMenu } from '@/src/components/profile/ProfileMenu';
+import { AddressList } from '@/src/components/profile/AddressList';
+import { LoadingIndicator } from '@/src/components/ui/LoadingIndicator';
+import { Button } from '@/src/components/ui/Button';
 import styles from '@/src/styles/profile';
 
-export default function ProfileScreen() {
-  const user = useAppSelector(selectUser);
-  const studyStats = useAppSelector(selectStudyStats);
+type ProfileScreenProps = {};
+
+export default function ProfileScreen({}: ProfileScreenProps) {
+  const router = useRouter();
   const dispatch = useAppDispatch();
-  
-  const settings = [
-    { id: 'notifications', title: 'Notifications', icon: 'bell', route: '/settings/notifications' },
-    { id: 'appearance', title: 'Appearance', icon: 'palette', route: '/settings/appearance' },
-    { id: 'privacy', title: 'Privacy & Security', icon: 'shield', route: '/settings/privacy' },
-    { id: 'help', title: 'Help & Support', icon: 'help-circle', route: '/settings/help' },
-    { id: 'about', title: 'About', icon: 'info', route: '/settings/about' }
-  ];
-  
+  const { user, loading } = useAppSelector((state) => state.auth);
+  const [isEditing, setIsEditing] = useState(false);
+
   const handleLogout = useCallback(() => {
-    dispatch(logout());
-  }, [dispatch]);
-  
-  const handleSettingPress = useCallback((route: string) => {
-    console.log('Navigate to setting:', route);
+    Alert.alert('Logout', 'Are you sure you want to logout?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Logout',
+        style: 'destructive',
+        onPress: () => {
+          dispatch(logout());
+          router.replace('/(auth)/login');
+        },
+      },
+    ]);
+  }, [dispatch, router]);
+
+  const handleEditProfile = useCallback(() => {
+    setIsEditing(true);
   }, []);
-  
+
+  const handleSaveProfile = useCallback(() => {
+    setIsEditing(false);
+    // Save profile logic here
+  }, []);
+
+  const handleAddressPress = useCallback((addressId: string) => {
+    router.push('/addresses');
+  }, [router]);
+
+  const handleMenuPress = useCallback((item: string) => {
+    switch (item) {
+      case 'orders':
+        router.push('/(tabs)/orders');
+        break;
+      case 'addresses':
+        router.push('/addresses');
+        break;
+      case 'preferences':
+        // Navigate to preferences screen
+        break;
+      case 'help':
+        // Navigate to help screen
+        break;
+      case 'about':
+        // Navigate to about screen
+        break;
+    }
+  }, [router]);
+
+  if (loading) {
+    return <LoadingIndicator />;
+  }
+
+  if (!user) {
+    router.replace('/(auth)/login');
+    return null;
+  }
+
   return (
-    <WrapperView>
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        <ProfileHeader user={user} onLogout={handleLogout} />
-        <StatsGrid stats={studyStats} />
-        <SettingsList settings={settings} onPress={handleSettingPress} />
+    <View style={styles.container}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <ProfileHeader
+          user={user}
+          isEditing={isEditing}
+          onEdit={handleEditProfile}
+          onSave={handleSaveProfile}
+        />
+        <View style={styles.section}>
+          <AddressList onAddressPress={handleAddressPress} />
+        </View>
+        <View style={styles.section}>
+          <ProfileMenu onMenuPress={handleMenuPress} />
+        </View>
       </ScrollView>
-    </WrapperView>
+      <View style={styles.logoutContainer}>
+        <Button
+          title="Logout"
+          variant="outline"
+          onPress={handleLogout}
+          style={styles.logoutButton}
+        />
+      </View>
+    </View>
   );
 }

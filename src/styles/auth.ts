@@ -1,51 +1,64 @@
 import { StyleSheet } from 'react-native';
-import { colors, spacing, typography } from '@/src/theme';
+import { colors, spacing, typography } from '../theme';
 
 export const styles = StyleSheet.create({
   container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  scrollContent: {
     flexGrow: 1,
-    padding: spacing.xl,
+    padding: spacing.md,
     justifyContent: 'center',
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: spacing.xl,
   },
   title: {
     ...typography.h1,
-    color: colors.primary,
-    textAlign: 'center',
+    color: colors.text.primary,
     marginBottom: spacing.xs,
   },
   subtitle: {
     ...typography.body,
-    color: colors.textSecondary,
-    textAlign: 'center',
+    color: colors.text.secondary,
+  },
+  form: {
     marginBottom: spacing.xl,
   },
-  dividerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: spacing.lg,
+  inputContainer: {
+    marginBottom: spacing.md,
   },
-  divider: {
+  errorText: {
+    ...typography.bodySmall,
+    color: colors.error,
+    marginBottom: spacing.md,
+    textAlign: 'center',
+  },
+  loginButton: {
+    marginTop: spacing.md,
+  },
+  socialLoginContainer: {
+    marginBottom: spacing.xl,
+  },
+  socialButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  socialButton: {
     flex: 1,
-    height: 1,
-    backgroundColor: colors.border,
+    marginHorizontal: spacing.xs,
   },
-  dividerText: {
-    ...typography.small,
-    color: colors.textSecondary,
-    marginHorizontal: spacing.md,
+  signupContainer: {
+    alignItems: 'center',
   },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: spacing.xl,
-  },
-  footerText: {
+  signupText: {
     ...typography.body,
-    color: colors.textSecondary,
+    color: colors.text.secondary,
   },
-  link: {
-    ...typography.body,
+  signupLink: {
     color: colors.primary,
-    fontWeight: '600',
+    fontWeight: 'bold',
   },
 });

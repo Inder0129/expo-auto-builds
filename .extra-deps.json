@@ -1,4 +1,5 @@
 [
   "@reduxjs/toolkit",
+  "react-native-maps",
   "react-redux"
 ]

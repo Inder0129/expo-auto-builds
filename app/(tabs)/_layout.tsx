@@ -1,16 +1,9 @@
 import { Tabs } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../../src/theme/colors';
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 
 export default function TabLayout() {
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.gray,
-        headerShown: false,
-      }}
-    >
+    <Tabs screenOptions={{ tabBarActiveTintColor: '#FF6B35' }}>
       <Tabs.Screen
         name="index"
         options={{
@@ -21,11 +14,20 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="search"
         options={{
-          title: 'Explore',
+          title: 'Search',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="compass" size={size} color={color} />
+            <Ionicons name="search" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="orders"
+        options={{
+          title: 'Orders',
+          tabBarIcon: ({ color, size }) => (
+            <MaterialIcons name="list-alt" size={size} color={color} />
           ),
         }}
       />

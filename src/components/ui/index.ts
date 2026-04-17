@@ -1,4 +1,6 @@
-export * from './button';
-export * from './card';
-export * from './input';
-export * from './wrapper-view';
+export { default as Button } from './Button';
+export { default as Input } from './Input';
+export { default as RestaurantCard } from './RestaurantCard';
+export { default as MenuItemCard } from './MenuItemCard';
+export { default as LoadingIndicator } from './LoadingIndicator';
+export { default as EmptyState } from './EmptyState';

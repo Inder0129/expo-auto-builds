@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { colors, spacing, typography } from '@/src/theme';
+import { colors, spacing, typography } from '../theme';
 
 export const styles = StyleSheet.create({
   container: {
@@ -7,34 +7,33 @@ export const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   header: {
-    padding: spacing.lg,
-    paddingBottom: spacing.md,
+    padding: spacing.md,
+    backgroundColor: colors.surface,
   },
   title: {
-    ...typography.h1,
+    ...typography.h2,
     color: colors.text.primary,
     marginBottom: spacing.xs,
   },
   subtitle: {
-    ...typography.body,
+    ...typography.bodySmall,
     color: colors.text.secondary,
   },
   mapContainer: {
     height: 200,
-    marginHorizontal: spacing.lg,
-    marginBottom: spacing.lg,
-    borderRadius: spacing.md,
+    margin: spacing.md,
+    borderRadius: 12,
     overflow: 'hidden',
   },
   map: {
     flex: 1,
   },
   addressList: {
-    paddingHorizontal: spacing.lg,
+    padding: spacing.md,
   },
   addressItem: {
     backgroundColor: colors.surface,
-    borderRadius: spacing.md,
+    borderRadius: 12,
     padding: spacing.md,
     marginBottom: spacing.md,
     borderWidth: 1,
@@ -48,17 +47,17 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.xs,
+    marginBottom: spacing.sm,
   },
   addressName: {
-    ...typography.subtitle,
+    ...typography.h4,
     color: colors.text.primary,
   },
   defaultBadge: {
     backgroundColor: colors.primaryLight,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
-    borderRadius: spacing.xs,
+    borderRadius: 4,
   },
   defaultText: {
     ...typography.caption,
@@ -72,20 +71,18 @@ export const styles = StyleSheet.create({
   },
   addressActions: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: spacing.md,
-    marginTop: spacing.sm,
+    marginTop: spacing.md,
   },
   actionButton: {
-    paddingHorizontal: spacing.md,
+    marginRight: spacing.sm,
   },
   addButtonContainer: {
-    position: 'absolute',
-    bottom: spacing.xl,
-    right: spacing.lg,
-    left: spacing.lg,
+    padding: spacing.md,
+    backgroundColor: colors.surface,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
   },
   addButton: {
-    borderRadius: spacing.round,
+    width: '100%',
   },
 });

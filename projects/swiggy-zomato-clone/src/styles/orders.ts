@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { colors, spacing, typography } from '@/src/theme';
+import { colors, spacing, typography } from '../theme';
 
 export default StyleSheet.create({
   container: {
@@ -7,12 +7,11 @@ export default StyleSheet.create({
     backgroundColor: colors.background,
   },
   section: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.lg,
+    padding: spacing.md,
   },
   sectionTitle: {
-    ...typography.h2,
-    marginBottom: spacing.md,
+    ...typography.h3,
     color: colors.text.primary,
+    marginBottom: spacing.md,
   },
 });

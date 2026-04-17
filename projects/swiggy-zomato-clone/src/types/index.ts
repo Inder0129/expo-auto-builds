@@ -3,24 +3,32 @@ export interface User {
   name: string;
   email: string;
   phone?: string;
+  avatar?: string;
 }
 
 export interface Restaurant {
   id: string;
   name: string;
   cuisine: string;
+  cuisines: string[];
   rating: number;
   deliveryTime: string;
+  deliveryFee: number;
+  distance: string;
   imageUrl: string;
-  menu: MenuItem[];
-}
-
-export interface MenuItem {
-  id: string;
-  name: string;
+  image: string;
   description: string;
-  price: number;
-  imageUrl?: string;
+  reviewCount: number;
+  isFeatured: boolean;
+  categories: string[];
+  menuItems: Array<{
+    id: string;
+    name: string;
+    description: string;
+    price: number;
+    category: string;
+    imageUrl?: string;
+  }>;
 }
 
 export interface CartItem {
@@ -28,6 +36,8 @@ export interface CartItem {
   name: string;
   price: number;
   quantity: number;
+  restaurantId: string;
+  restaurantName: string;
 }
 
 export interface Order {
@@ -35,9 +45,9 @@ export interface Order {
   restaurantId: string;
   restaurantName: string;
   items: CartItem[];
-  total: number;
-  status: 'pending' | 'delivered' | 'cancelled';
-  createdAt: string;
+  totalAmount: number;
+  status: 'pending' | 'preparing' | 'on_the_way' | 'delivered' | 'cancelled';
+  date: string;
 }
 
 export interface Address {
@@ -47,4 +57,13 @@ export interface Address {
   state: string;
   zipCode: string;
   isDefault: boolean;
+  latitude?: number;
+  longitude?: number;
+}
+
+export interface CalculationHistory {
+  id: string;
+  expression: string;
+  result: string;
+  timestamp: string;
 }

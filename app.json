@@ -1,23 +1,23 @@
 {
   "expo": {
-    "name": "Allen Study",
-    "slug": "allen-study",
-    "scheme": "allen-study",
+    "name": "SwiggyZomatoClone",
+    "slug": "swiggy-zomato-clone",
+    "scheme": "swiggy-zomato-clone",
     "owner": "inder-6284",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "plugins": [
       "expo-router"
     ],
-    "extra": {
-      "router": {
-        "origin": false
-      }
-    },
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
     "android": {
-      "package": "com.inder6284.allenstudy"
+      "package": "com.inder6284.swiggyzomatoclone"
     }
   }
 }

@@ -1,22 +1,21 @@
 export const typography = {
   h1: {
     fontSize: 32,
-    fontWeight: 'bold' as const,
+    fontWeight: 'bold',
   },
   h2: {
     fontSize: 24,
-    fontWeight: '600' as const,
+    fontWeight: 'bold',
   },
   h3: {
-    fontSize: 20,
-    fontWeight: '600' as const,
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   body: {
     fontSize: 16,
-    fontWeight: 'normal' as const,
   },
   caption: {
     fontSize: 14,
-    fontWeight: 'normal' as const,
+    color: '#666666',
   },
 };

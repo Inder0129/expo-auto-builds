@@ -1,3 +1,3 @@
-export { AuthForm } from './auth-form';
-export { SocialLogin } from './social-login';
-export { TermsAgreement } from './terms-agreement';
+export { LoginForm } from './LoginForm';
+export { SocialLogin } from './SocialLogin';
+export { SignupLink } from './SignupLink';

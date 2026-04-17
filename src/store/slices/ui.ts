@@ -1,27 +1,22 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
 
-interface UiState {
+interface UIState {
   isLoading: boolean;
-  theme: 'light' | 'dark';
 }
 
-const initialState: UiState = {
+const initialState: UIState = {
   isLoading: false,
-  theme: 'light',
 };
 
 const uiSlice = createSlice({
   name: 'ui',
   initialState,
   reducers: {
-    setLoading: (state, action: PayloadAction<boolean>) => {
+    setLoading: (state, action) => {
       state.isLoading = action.payload;
-    },
-    toggleTheme: (state) => {
-      state.theme = state.theme === 'light' ? 'dark' : 'light';
     },
   },
 });
 
-export const { setLoading, toggleTheme } = uiSlice.actions;
+export const { setLoading } = uiSlice.actions;
 export default uiSlice.reducer;

@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { colors, spacing, typography } from '@/src/theme';
+import { colors, spacing, typography } from '../theme';
 
 export const styles = StyleSheet.create({
   container: {
@@ -8,8 +8,8 @@ export const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    padding: spacing.lg,
-    paddingTop: spacing.xl * 2,
+    padding: spacing.md,
+    justifyContent: 'center',
   },
   header: {
     alignItems: 'center',
@@ -25,43 +25,40 @@ export const styles = StyleSheet.create({
     color: colors.text.secondary,
   },
   form: {
-    marginBottom: spacing.lg,
+    marginBottom: spacing.xl,
   },
   inputContainer: {
     marginBottom: spacing.md,
   },
   errorText: {
-    ...typography.caption,
+    ...typography.bodySmall,
     color: colors.error,
-    marginTop: spacing.xs,
+    marginBottom: spacing.md,
     textAlign: 'center',
   },
   loginButton: {
     marginTop: spacing.md,
   },
   socialLoginContainer: {
-    marginVertical: spacing.lg,
+    marginBottom: spacing.xl,
   },
   socialButtons: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    gap: spacing.md,
+    justifyContent: 'space-between',
   },
   socialButton: {
     flex: 1,
-    maxWidth: 100,
+    marginHorizontal: spacing.xs,
   },
   signupContainer: {
     alignItems: 'center',
-    marginTop: spacing.xl,
   },
   signupText: {
     ...typography.body,
     color: colors.text.secondary,
   },
   signupLink: {
-    ...typography.body,
     color: colors.primary,
-    fontWeight: '600',
+    fontWeight: 'bold',
   },
 });
