@@ -1,6 +1,0 @@
-[
-  "@reduxjs/toolkit",
-  "expo-image-picker",
-  "expo-media-library",
-  "react-redux"
-]
