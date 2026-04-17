@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../theme';
 import { useAppSelector } from '../../store/hooks';
 import { Photo } from '../../types';
+import { RootState } from '../../store';
 
 interface PhotoGridItemProps {
   photo: Photo;
@@ -12,7 +13,7 @@ interface PhotoGridItemProps {
 }
 
 export function PhotoGridItem({ photo, size, onPress }: PhotoGridItemProps) {
-  const favorites = useAppSelector((state) => state.gallery.favorites);
+  const favorites = useAppSelector((state: RootState) => state.gallery.favorites);
   const isFavorite = favorites.includes(photo.id);
   
   return (

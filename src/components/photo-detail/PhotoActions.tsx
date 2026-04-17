@@ -6,6 +6,7 @@ import { colors, spacing } from '../../theme';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { toggleFavorite } from '../../store/slices/gallery';
 import { Photo } from '../../types';
+import { RootState } from '../../store';
 
 interface PhotoActionsProps {
   photo: Photo;
@@ -13,7 +14,7 @@ interface PhotoActionsProps {
 
 export function PhotoActions({ photo }: PhotoActionsProps) {
   const dispatch = useAppDispatch();
-  const favorites = useAppSelector((state) => state.gallery.favorites);
+  const favorites = useAppSelector((state: RootState) => state.gallery.favorites);
   
   const isFavorite = favorites.includes(photo.id);
   

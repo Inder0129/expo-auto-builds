@@ -6,13 +6,14 @@ import { WrapperView } from '../src/components/ui';
 import { useAppSelector } from '../src/store/hooks';
 import { Album, Photo } from '../src/types';
 import styles from '../src/styles/album-detail';
+import { RootState } from '../src/store';
 
 export default function AlbumDetailScreen() {
   const router = useRouter();
   const { albumId } = useLocalSearchParams<{ albumId: string }>();
   
-  const albums = useAppSelector((state) => state.gallery.albums);
-  const photos = useAppSelector((state) => state.gallery.photos);
+  const albums = useAppSelector((state: RootState) => state.gallery.albums);
+  const photos = useAppSelector((state: RootState) => state.gallery.photos);
   
   const selectedAlbum = useMemo(() => 
     albums.find((album: Album) => album.id === albumId),

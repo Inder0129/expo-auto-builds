@@ -1,19 +1,20 @@
 import React, { useCallback, useMemo } from 'react';
 import { useRouter } from 'expo-router';
-import { useAppSelector, useAppDispatch } from '../src/store/hooks';
-import { toggleSelection, clearSelection } from '../src/store/slices/selection';
-import { PhotoGrid } from '../src/components/gallery/photo-grid';
-import { Header } from '../src/components/gallery/header';
-import { SelectionBar } from '../src/components/gallery/selection-bar';
-import { WrapperView } from '../src/components/ui';
-import { Photo } from '../src/types';
-import styles from '../src/styles/favorites';
+import { useAppSelector, useAppDispatch } from '../../src/store/hooks';
+import { toggleSelection, clearSelection } from '../../src/store/slices/selection';
+import { PhotoGrid } from '../../src/components/gallery/photo-grid';
+import { Header } from '../../src/components/gallery/header';
+import { SelectionBar } from '../../src/components/gallery/selection-bar';
+import { WrapperView } from '../../src/components/ui';
+import { Photo } from '../../src/types';
+import styles from '../../src/styles/favorites';
+import { RootState } from '../../src/store';
 
 export default function FavoritesScreen() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const photos = useAppSelector((state) => state.gallery.photos);
-  const selectedIds = useAppSelector((state) => state.selection.selectedIds);
+  const photos = useAppSelector((state: RootState) => state.gallery.photos);
+  const selectedIds = useAppSelector((state: RootState) => state.selection.selectedIds);
   const isSelectionMode = selectedIds.length > 0;
 
   const favoritePhotos = useMemo(() => 

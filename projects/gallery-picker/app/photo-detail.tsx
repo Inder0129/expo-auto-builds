@@ -6,12 +6,13 @@ import { WrapperView } from '../src/components/ui';
 import { useAppSelector } from '../src/store/hooks';
 import { Photo } from '../src/types';
 import styles from '../src/styles/photo-detail';
+import { RootState } from '../src/store';
 
 export default function PhotoDetailScreen() {
   const router = useRouter();
   const { photoId } = useLocalSearchParams<{ photoId: string }>();
   
-  const photos = useAppSelector((state) => state.gallery.photos);
+  const photos = useAppSelector((state: RootState) => state.gallery.photos);
   const selectedPhoto = useMemo(() => 
     photos.find((photo: Photo) => photo.id === photoId),
     [photos, photoId]

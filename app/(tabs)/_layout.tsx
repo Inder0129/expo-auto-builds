@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../src/theme';
+import { colors } from '../../src/theme';
 
 export default function TabLayout() {
   return (
@@ -22,7 +22,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Photos',
-          tabBarIcon: ({ color, size }) => (
+          tabBarIcon: ({ color, size }: { color: string; size: number }) => (
             <Ionicons name="images-outline" size={size} color={color} />
           ),
         }}
@@ -31,7 +31,7 @@ export default function TabLayout() {
         name="albums"
         options={{
           title: 'Albums',
-          tabBarIcon: ({ color, size }) => (
+          tabBarIcon: ({ color, size }: { color: string; size: number }) => (
             <Ionicons name="albums-outline" size={size} color={color} />
           ),
         }}
@@ -40,7 +40,7 @@ export default function TabLayout() {
         name="favorites"
         options={{
           title: 'Favorites',
-          tabBarIcon: ({ color, size }) => (
+          tabBarIcon: ({ color, size }: { color: string; size: number }) => (
             <Ionicons name="heart-outline" size={size} color={color} />
           ),
         }}
