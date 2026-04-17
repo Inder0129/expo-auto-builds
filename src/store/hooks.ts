@@ -5,9 +5,9 @@ export const useAppDispatch: () => AppDispatch = useDispatch;
 export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 
 export function useCalculator() {
-  const dispatch = useAppDispatch();
   const displayValue = useAppSelector((state) => state.calculator.displayValue);
   const history = useAppSelector((state) => state.calculator.history);
+  const dispatch = useAppDispatch();
 
   return {
     displayValue,
