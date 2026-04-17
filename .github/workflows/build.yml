@@ -202,7 +202,8 @@ jobs:
         env:
           APP_NAME: ${{ steps.meta.outputs.app_name }}
           APK_URL: ${{ steps.download_url.outputs.url }}
-        run: bash /tmp/notify.sh "[6/6] APK ready! App: ${APP_NAME} | Download: ${APK_URL}"
+        run: |
+          bash /tmp/notify.sh "[6/6] APK ready! App: ${APP_NAME} - Download: ${APK_URL}"
 
       - name: Trigger auto-fix on failure
         if: failure() && steps.meta.outputs.has_meta == 'true'
@@ -220,4 +221,5 @@ jobs:
         env:
           APP_NAME: ${{ steps.meta.outputs.app_name }}
           RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: bash /tmp/notify.sh "Build failed for: ${APP_NAME}. AI attempting auto-fix... Logs: ${RUN_URL}"
+        run: |
+          bash /tmp/notify.sh "Build failed for: ${APP_NAME}. AI attempting auto-fix... Logs: ${RUN_URL}"
