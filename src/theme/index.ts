@@ -23,19 +23,19 @@ export const colors = {
 export const typography = {
   h1: {
     fontSize: 32,
-    fontWeight: 'bold',
+    fontWeight: 'bold' as const,
   },
   h2: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: 'bold' as const,
   },
   h3: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: 'bold' as const,
   },
   h4: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: 'bold' as const,
   },
   body: {
     fontSize: 16,

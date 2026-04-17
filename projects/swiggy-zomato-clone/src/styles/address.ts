@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { colors, spacing, typography } from '../theme';
+import { colors, spacing, typography } from '@/src/theme';
 
 export const styles = StyleSheet.create({
   container: {
@@ -9,6 +9,8 @@ export const styles = StyleSheet.create({
   header: {
     padding: spacing.md,
     backgroundColor: colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
   title: {
     ...typography.h2,
@@ -22,7 +24,7 @@ export const styles = StyleSheet.create({
   mapContainer: {
     height: 200,
     margin: spacing.md,
-    borderRadius: 12,
+    borderRadius: 8,
     overflow: 'hidden',
   },
   map: {
@@ -33,7 +35,7 @@ export const styles = StyleSheet.create({
   },
   addressItem: {
     backgroundColor: colors.surface,
-    borderRadius: 12,
+    borderRadius: 8,
     padding: spacing.md,
     marginBottom: spacing.md,
     borderWidth: 1,
@@ -60,9 +62,9 @@ export const styles = StyleSheet.create({
     borderRadius: 4,
   },
   defaultText: {
-    ...typography.caption,
     color: colors.primary,
-    fontWeight: '600',
+    fontSize: 12,
+    fontWeight: 'bold' as const,
   },
   addressText: {
     ...typography.body,
@@ -72,9 +74,10 @@ export const styles = StyleSheet.create({
   addressActions: {
     flexDirection: 'row',
     marginTop: spacing.md,
+    gap: spacing.sm,
   },
   actionButton: {
-    marginRight: spacing.sm,
+    flex: 1,
   },
   addButtonContainer: {
     padding: spacing.md,
