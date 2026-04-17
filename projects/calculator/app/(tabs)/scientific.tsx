@@ -4,8 +4,6 @@ import { ScientificKeypad } from '../../src/components/calculator/scientific-key
 import { WrapperView } from '../../src/components/ui/wrapper-view';
 import { useCallback, useState } from 'react';
 import { StyleSheet } from 'react-native';
-import { colors } from '../../src/theme/colors';
-import { spacing } from '../../src/theme/spacing';
 
 export default function ScientificCalculatorScreen() {
   const [displayValue, setDisplayValue] = useState('0');
@@ -70,6 +68,5 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
-    backgroundColor: colors.background,
   },
 });

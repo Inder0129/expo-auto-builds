@@ -121,42 +121,10 @@ jobs:
           npx tsc --noEmit 2>&1 | tee /tmp/ts-errors.log
           TS_EXIT=${PIPESTATUS[0]}
           if [ $TS_EXIT -ne 0 ]; then
-            echo "ts_errors=true" >> $GITHUB_OUTPUT
             ERROR_COUNT=$(grep -c "error TS" /tmp/ts-errors.log || echo "0")
-            echo "error_count=$ERROR_COUNT" >> $GITHUB_OUTPUT
-            echo "TypeScript found $ERROR_COUNT error(s)"
+            echo "TypeScript found $ERROR_COUNT error(s) — will be caught by auto-fix if build fails"
           else
-            echo "ts_errors=false" >> $GITHUB_OUTPUT
             echo "TypeScript check passed!"
-          fi
-
-      - name: AI fix TypeScript errors
-        if: steps.ts_check.outputs.ts_errors == 'true' && steps.meta.outputs.has_meta == 'true'
-        env:
-          CHAT_ID: ${{ steps.meta.outputs.chat_id }}
-          BOT_URL: ${{ secrets.BOT_URL }}
-        run: |
-          echo "Sending TS errors to AI for fixing..."
-          if [ -n "$BOT_URL" ]; then
-            python3 -c "
-          import json, urllib.request
-          errors = open('/tmp/ts-errors.log').read()[-3000:]
-          payload = json.dumps({'chatId': '${CHAT_ID}', 'error': 'TypeScript errors:\n' + errors, 'buildMode': 'gradle'}).encode()
-          req = urllib.request.Request('${BOT_URL}/build-error', data=payload, headers={'Content-Type': 'application/json'})
-          try:
-            resp = urllib.request.urlopen(req, timeout=30)
-            print(f'AI fix triggered: {resp.status}')
-          except Exception as e:
-            print(f'AI fix failed: {e}')
-          " || true
-            echo "Waiting 90s for AI fix..."
-            sleep 90
-            git pull --rebase origin main || true
-            npm install --legacy-peer-deps 2>/dev/null || true
-            echo "=== Re-checking TypeScript ==="
-            npx tsc --noEmit 2>&1 || echo "Some TS errors may remain"
-          else
-            echo "BOT_URL not set — skipping AI fix"
           fi
 
       - name: Notify - Dependencies ready
@@ -280,7 +248,13 @@ jobs:
           if [ -n "$BOT_URL" ]; then
             python3 -c "
           import json, urllib.request, os
-          error = open('/tmp/gradle-output.log').read()[-3000:] if os.path.exists('/tmp/gradle-output.log') else 'Gradle build failed'
+          parts = []
+          if os.path.exists('/tmp/ts-errors.log'):
+            ts = open('/tmp/ts-errors.log').read().strip()
+            if ts: parts.append('TypeScript errors:\\n' + ts[-1500:])
+          if os.path.exists('/tmp/gradle-output.log'):
+            parts.append('Gradle errors:\\n' + open('/tmp/gradle-output.log').read()[-1500:])
+          error = '\\n\\n'.join(parts) if parts else 'Build failed. Check GitHub Actions logs.'
           payload = json.dumps({'chatId': '${CHAT_ID}', 'error': error, 'buildMode': 'gradle'}).encode()
           req = urllib.request.Request('${BOT_URL}/build-error', data=payload, headers={'Content-Type': 'application/json'})
           try:

@@ -4,8 +4,6 @@ import { CalculatorKeypad } from '../../src/components/calculator/calculator-key
 import { WrapperView } from '../../src/components/ui/wrapper-view';
 import { useCallback, useState } from 'react';
 import { StyleSheet } from 'react-native';
-import { colors } from '../../src/theme/colors';
-import { spacing } from '../../src/theme/spacing';
 
 export default function CalculatorScreen() {
   const [displayValue, setDisplayValue] = useState('0');
