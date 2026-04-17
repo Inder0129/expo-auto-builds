@@ -2,16 +2,15 @@ import { FlatList, View } from 'react-native';
 import { HistoryList } from '@/src/components/history/history-list';
 import { ClearHistoryButton } from '@/src/components/history/clear-history-button';
 import { WrapperView } from '@/src/components/ui';
-import { useCalculator } from '@/src/store/hooks';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { historyStyles } from '@/src/styles/history';
 
 export default function HistoryScreen() {
-  const { history, clearHistory } = useCalculator();
+  const [history, setHistory] = useState<Array<{expression: string, result: string}>>([]);
 
   const handleClearHistory = useCallback(() => {
-    clearHistory();
-  }, [clearHistory]);
+    setHistory([]);
+  }, []);
 
   return (
     <WrapperView>

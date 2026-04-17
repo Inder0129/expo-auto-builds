@@ -2,24 +2,30 @@ import { View } from 'react-native';
 import { CalculatorDisplay } from '@/src/components/calculator/calculator-display';
 import { CalculatorKeypad } from '@/src/components/calculator/calculator-keypad';
 import { WrapperView } from '@/src/components/ui';
-import { useCalculator } from '@/src/store/hooks';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { calculatorStyles } from '@/src/styles/calculator';
 
 export default function CalculatorScreen() {
-  const { displayValue, history, addToHistory, clearHistory } = useCalculator();
+  const [displayValue, setDisplayValue] = useState('0');
+  const [history, setHistory] = useState<Array<{expression: string, result: string}>>([]);
 
   const handleKeyPress = useCallback((key: string) => {
-    console.log('Key pressed:', key);
+    setDisplayValue(prev => prev === '0' ? key : prev + key);
   }, []);
 
   const handleClear = useCallback(() => {
-    console.log('Clear pressed');
+    setDisplayValue('0');
   }, []);
 
   const handleEquals = useCallback(() => {
-    console.log('Equals pressed');
-  }, []);
+    try {
+      const result = eval(displayValue).toString();
+      setHistory(prev => [...prev, {expression: displayValue, result}]);
+      setDisplayValue(result);
+    } catch (error) {
+      setDisplayValue('Error');
+    }
+  }, [displayValue]);
 
   return (
     <WrapperView>
