@@ -7,7 +7,6 @@ import { StyleSheet } from 'react-native';
 
 export default function CalculatorScreen() {
   const [displayValue, setDisplayValue] = useState('0');
-  const [history, setHistory] = useState<Array<{expression: string, result: string}>>([]);
 
   const handleKeyPress = useCallback((key: string) => {
     setDisplayValue(prev => prev === '0' ? key : prev + key);
@@ -20,7 +19,6 @@ export default function CalculatorScreen() {
   const handleEquals = useCallback(() => {
     try {
       const result = eval(displayValue).toString();
-      setHistory(prev => [...prev, {expression: displayValue, result}]);
       setDisplayValue(result);
     } catch (error) {
       setDisplayValue('Error');
