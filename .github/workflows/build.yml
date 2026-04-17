@@ -113,6 +113,16 @@ jobs:
           npx expo install --fix 2>&1 || true
           npx expo-doctor 2>&1 || true
 
+      - name: Debug - Check reanimated build.gradle
+        run: |
+          echo "=== react-native-reanimated build.gradle (lines 45-65) ==="
+          sed -n '45,65p' node_modules/react-native-reanimated/android/build.gradle 2>/dev/null || echo "File not found"
+          echo ""
+          echo "=== Node location ==="
+          which node || echo "node not in PATH"
+          node --version || echo "node not working"
+          ls -la /usr/local/bin/node 2>/dev/null || echo "/usr/local/bin/node not symlinked yet"
+
       - name: Notify - Dependencies ready
         if: steps.meta.outputs.has_meta == 'true'
         run: bash /tmp/notify.sh "[2/6] Dependencies installed with correct versions."
