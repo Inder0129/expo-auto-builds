@@ -66,6 +66,9 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Configure npm for peer deps
+        run: echo "legacy-peer-deps=true" > .npmrc
+
       - name: Create Expo project with proper versions
         run: |
           npx create-expo-app@latest _expo_base --template blank-typescript --no-install
