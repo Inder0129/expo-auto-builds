@@ -128,6 +128,11 @@ jobs:
               f.write(png)
           "
 
+      - name: Make node visible to Gradle
+        run: |
+          sudo ln -sf "$(which node)" /usr/local/bin/node
+          echo "Node linked: $(node --version) at /usr/local/bin/node"
+
       - name: Clean app.json and Prebuild
         run: |
           python3 -c "
@@ -157,9 +162,8 @@ jobs:
           sed -i '/android {/a\    signingConfigs {\n        release {\n            storeFile file("release-key.keystore")\n            storePassword "android"\n            keyAlias "release-key"\n            keyPassword "android"\n        }\n    }' build.gradle
           sed -i 's/signingConfig signingConfigs.debug/signingConfig signingConfigs.release/' build.gradle
 
-      - name: Make node visible to Gradle
+      - name: Symlink node_modules for Gradle
         run: |
-          sudo ln -sf "$(which node)" /usr/local/bin/node
           rm -rf android/node_modules
           ln -s "$(pwd)/node_modules" android/node_modules
 
