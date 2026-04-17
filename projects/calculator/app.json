@@ -17,7 +17,11 @@
       }
     },
     "android": {
-      "package": "com.inder6284.calculator"
+      "package": "com.inder6284.calculator",
+      "compileSdkVersion": 36,
+      "targetSdkVersion": 36,
+      "buildToolsVersion": "36.0.0",
+      "minSdkVersion": 24
     }
   }
 }

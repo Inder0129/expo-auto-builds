@@ -1,10 +1,10 @@
 import { StyleSheet } from 'react-native';
-import { spacing } from '@/src/theme/spacing';
+import { spacing } from '../theme/spacing';
 
 export const calculatorStyles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: spacing.lg,
-    justifyContent: 'space-between',
+    justifyContent: 'center',
+    padding: spacing.md,
   },
 });
