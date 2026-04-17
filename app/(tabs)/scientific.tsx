@@ -1,9 +1,11 @@
 import { View } from 'react-native';
-import { CalculatorDisplay } from '@/src/components/calculator/calculator-display';
-import { ScientificKeypad } from '@/src/components/calculator/scientific-keypad';
-import { WrapperView } from '@/src/components/ui';
+import { CalculatorDisplay } from '../../src/components/calculator/calculator-display';
+import { ScientificKeypad } from '../../src/components/calculator/scientific-keypad';
+import { WrapperView } from '../../src/components/ui/wrapper-view';
 import { useCallback, useState } from 'react';
-import { scientificStyles } from '@/src/styles/scientific';
+import { StyleSheet } from 'react-native';
+import { colors } from '../../src/theme/colors';
+import { spacing } from '../../src/theme/spacing';
 
 export default function ScientificCalculatorScreen() {
   const [displayValue, setDisplayValue] = useState('0');
@@ -53,7 +55,7 @@ export default function ScientificCalculatorScreen() {
 
   return (
     <WrapperView>
-      <View style={scientificStyles.container}>
+      <View style={styles.container}>
         <CalculatorDisplay value={displayValue} />
         <ScientificKeypad
           onKeyPress={handleKeyPress}
@@ -63,3 +65,11 @@ export default function ScientificCalculatorScreen() {
     </WrapperView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    backgroundColor: colors.background,
+  },
+});

@@ -1,5 +1,4 @@
 import { Text, View } from 'react-native';
-import { typography } from '../../theme/typography';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
 import { StyleSheet } from 'react-native';
@@ -27,7 +26,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   text: {
-    ...typography.display,
+    fontSize: 48,
+    fontWeight: '600' as const,
     color: colors.text,
   },
 });

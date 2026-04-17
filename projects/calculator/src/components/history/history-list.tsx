@@ -1,5 +1,4 @@
 import { Text, View } from 'react-native';
-import { typography } from '../../theme/typography';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
 import { StyleSheet } from 'react-native';
@@ -29,11 +28,12 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
   },
   expression: {
-    ...typography.body,
+    fontSize: 16,
     color: colors.text,
   },
   result: {
-    ...typography.bodyBold,
+    fontSize: 16,
+    fontWeight: '600' as const,
     color: colors.primary,
     marginTop: spacing.xs,
   },
