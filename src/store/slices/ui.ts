@@ -1,38 +1,27 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-type UiState = {
+interface UIState {
   theme: 'light' | 'dark';
-  isLoading: boolean;
-  toast: {
-    message: string;
-    type: 'success' | 'error' | 'info' | 'warning';
-  } | null;
-};
+  gridColumns: number;
+}
 
-const initialState: UiState = {
+const initialState: UIState = {
   theme: 'light',
-  isLoading: false,
-  toast: null,
+  gridColumns: 2,
 };
 
 const uiSlice = createSlice({
   name: 'ui',
   initialState,
   reducers: {
-    setTheme: (state, action: PayloadAction<'light' | 'dark'>) => {
-      state.theme = action.payload;
+    toggleTheme: (state) => {
+      state.theme = state.theme === 'light' ? 'dark' : 'light';
     },
-    setLoading: (state, action: PayloadAction<boolean>) => {
-      state.isLoading = action.payload;
-    },
-    showToast: (state, action: PayloadAction<{ message: string; type: 'success' | 'error' | 'info' | 'warning' }>) => {
-      state.toast = action.payload;
-    },
-    hideToast: (state) => {
-      state.toast = null;
+    setGridColumns: (state, action: PayloadAction<number>) => {
+      state.gridColumns = action.payload;
     },
   },
 });
 
-export const { setTheme, setLoading, showToast, hideToast } = uiSlice.actions;
+export const { toggleTheme, setGridColumns } = uiSlice.actions;
 export default uiSlice.reducer;

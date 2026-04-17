@@ -1,14 +1,13 @@
 import React, { useCallback, useMemo } from 'react';
-import { View, FlatList, Text } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useAppSelector, useAppDispatch } from '../../src/store/hooks';
-import { toggleSelection, clearSelection } from '../../src/store/slices/selection';
-import { PhotoGrid } from '../../src/components/gallery/photo-grid';
-import { Header } from '../../src/components/gallery/header';
-import { SelectionBar } from '../../src/components/gallery/selection-bar';
-import { WrapperView } from '../../src/components/ui';
-import { Photo } from '../../src/types';
-import styles from '../../src/styles/gallery';
+import { useAppSelector, useAppDispatch } from '../src/store/hooks';
+import { toggleSelection, clearSelection } from '../src/store/slices/selection';
+import { PhotoGrid } from '../src/components/gallery/photo-grid';
+import { Header } from '../src/components/gallery/header';
+import { SelectionBar } from '../src/components/gallery/selection-bar';
+import { WrapperView } from '../src/components/ui';
+import { Photo } from '../src/types';
+import styles from '../src/styles/gallery';
 
 export default function GalleryScreen() {
   const router = useRouter();
@@ -36,7 +35,7 @@ export default function GalleryScreen() {
   const memoizedPhotos = useMemo(() => photos, [photos]);
 
   return (
-    <WrapperView>
+    <WrapperView style={styles.container}>
       <Header title="Gallery" showBack={false} />
       <PhotoGrid
         photos={memoizedPhotos}

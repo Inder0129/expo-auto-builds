@@ -1,22 +1,8 @@
 export const typography = {
-  fontSize: {
-    xs: 12,
-    sm: 14,
-    md: 16,
-    lg: 18,
-    xl: 20,
-    xxl: 24,
-    xxxl: 32,
-  },
-  fontWeight: {
-    regular: '400',
-    medium: '500',
-    semibold: '600',
-    bold: '700',
-  },
-  lineHeight: {
-    tight: 1.2,
-    normal: 1.5,
-    relaxed: 1.8,
-  },
-} as const;
+  h1: { fontSize: 32, fontWeight: '700' as const },
+  h2: { fontSize: 24, fontWeight: '600' as const },
+  h3: { fontSize: 20, fontWeight: '600' as const },
+  body: { fontSize: 16, fontWeight: '400' as const },
+  caption: { fontSize: 14, fontWeight: '400' as const },
+  button: { fontSize: 16, fontWeight: '600' as const },
+};

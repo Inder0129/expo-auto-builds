@@ -1,7 +1,5 @@
-export const API_BASE_URL = 'https://api.fooddelivery.com';
-export const APP_NAME = 'FoodDelivery';
-export const CURRENCY = '₹';
-export const DELIVERY_FEE = 30;
-export const TAX_RATE = 0.05;
-export const MIN_ORDER_AMOUNT = 100;
-export const MAX_CART_ITEMS = 20;
+export const GRID_COLUMNS = 2;
+export const PHOTO_ASPECT_RATIO = 3 / 4;
+export const MAX_SELECTION = 50;
+export const SUPPORTED_FORMATS = ['image/jpeg', 'image/png', 'image/heic'];
+export const ALBUM_TYPES = ['all', 'favorites', 'recent', 'custom'] as const;

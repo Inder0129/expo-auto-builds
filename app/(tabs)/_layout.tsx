@@ -1,59 +1,47 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '@/src/theme';
-
-type TabIconProps = {
-  name: keyof typeof Ionicons.glyphMap;
-  color: string;
-  size: number;
-};
-
-function TabIcon(props: TabIconProps) {
-  return <Ionicons name={props.name} color={props.color} size={props.size} />;
-}
+import { colors } from '../src/theme';
 
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.gray,
-        headerShown: false,
+        tabBarInactiveTintColor: colors.textSecondary,
+        tabBarStyle: {
+          backgroundColor: colors.background,
+          borderTopColor: colors.border,
+        },
+        headerStyle: {
+          backgroundColor: colors.background,
+        },
+        headerTintColor: colors.text,
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color, size }: { color: string; size: number }) => (
-            <TabIcon name="home" color={color} size={size} />
+          title: 'Photos',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="images-outline" size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="albums"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color, size }: { color: string; size: number }) => (
-            <TabIcon name="search" color={color} size={size} />
+          title: 'Albums',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="albums-outline" size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="orders"
+        name="favorites"
         options={{
-          title: 'Orders',
-          tabBarIcon: ({ color, size }: { color: string; size: number }) => (
-            <TabIcon name="receipt" color={color} size={size} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: 'Profile',
-          tabBarIcon: ({ color, size }: { color: string; size: number }) => (
-            <TabIcon name="person" color={color} size={size} />
+          title: 'Favorites',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="heart-outline" size={size} color={color} />
           ),
         }}
       />
