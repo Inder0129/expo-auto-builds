@@ -1,7 +1,317 @@
-name: placeholder
-on: workflow_dispatch
+name: Build via Gradle
+
+on:
+  push:
+    branches: [main, master]
+    paths-ignore:
+      - 'initial-template/**'
+      - 'projects/**'
+  workflow_dispatch:
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
 jobs:
-  noop:
+  build:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
+
     steps:
-      - run: echo ok
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Read build metadata
+        id: meta
+        run: |
+          if [ -f .build-meta.json ]; then
+            echo "chat_id=$(jq -r '.chatId' .build-meta.json)" >> $GITHUB_OUTPUT
+            echo "app_name=$(jq -r '.appName' .build-meta.json)" >> $GITHUB_OUTPUT
+            echo "has_meta=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_meta=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Setup Telegram notifier
+        if: steps.meta.outputs.has_meta == 'true'
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ steps.meta.outputs.chat_id }}
+        run: |
+          cat > /tmp/notify.sh << 'SCRIPT'
+          #!/bin/bash
+          PAYLOAD=$(jq -n --arg chat_id "$CHAT_ID" --arg text "$1" '{chat_id: $chat_id, text: $text}')
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD" > /dev/null
+          SCRIPT
+          chmod +x /tmp/notify.sh
+          echo "TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}" >> $GITHUB_ENV
+          echo "CHAT_ID=${CHAT_ID}" >> $GITHUB_ENV
+
+      - name: Notify - Build started
+        if: steps.meta.outputs.has_meta == 'true'
+        run: bash /tmp/notify.sh "[1/6] Gradle Build started — setting up Expo project..."
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Configure npm for peer deps
+        run: echo "legacy-peer-deps=true" > .npmrc
+
+      - name: Create Expo project with proper versions
+        run: |
+          npx create-expo-app@latest _expo_base --template blank-typescript --no-install
+          cp _expo_base/package.json ./package.json
+          rm -rf _expo_base
+          python3 -c "
+          import json
+          with open('package.json') as f:
+            pkg = json.load(f)
+          pkg['main'] = 'expo-router/entry'
+          with open('package.json', 'w') as f:
+            json.dump(pkg, f, indent=2)
+          "
+
+      - name: Install base dependencies
+        run: |
+          for i in 1 2 3; do
+            npm install && break
+            echo "npm install failed (attempt $i/3), retrying in 10s..."
+            sleep 10
+          done
+
+      - name: Install expo-router and core deps
+        run: npx expo install expo-router expo-linking expo-constants expo-status-bar react-native-screens react-native-safe-area-context react-native-gesture-handler react-native-reanimated react-native-worklets
+
+      - name: Install extra dependencies from AI
+        run: |
+          if [ -f .extra-deps.json ]; then
+            DEPS=$(python3 -c "import json; deps=json.load(open('.extra-deps.json')); print(' '.join(deps))" 2>/dev/null)
+            if [ -n "$DEPS" ]; then
+              echo "Installing extra deps: $DEPS"
+              npx expo install $DEPS
+            fi
+          fi
+
+      - name: Fix and verify dependencies
+        run: |
+          npx expo install --fix 2>&1 || true
+          npx expo-doctor 2>&1 || true
+
+      - name: TypeScript check
+        id: ts_check
+        continue-on-error: true
+        run: |
+          echo "=== Running TypeScript check ==="
+          npx tsc --noEmit 2>&1 | tee /tmp/ts-errors.log
+          TS_EXIT=${PIPESTATUS[0]}
+          if [ $TS_EXIT -ne 0 ]; then
+            ERROR_COUNT=$(grep -c "error TS" /tmp/ts-errors.log || echo "0")
+            echo "TypeScript found $ERROR_COUNT error(s) — will be caught by auto-fix if build fails"
+          else
+            echo "TypeScript check passed!"
+          fi
+
+      - name: Notify - Dependencies ready
+        if: steps.meta.outputs.has_meta == 'true'
+        run: bash /tmp/notify.sh "[2/6] Code checked and dependencies verified."
+
+      - name: Create placeholder assets
+        run: |
+          mkdir -p assets
+          python3 -c "
+          import base64
+          png = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAIAAADYYG7QAAAADklEQVRYw+3BAQ0AAADCoPdPbQ43oAAAAIdJREFUeJztwQENAAAAwqD3T20ON6AAAH5tGYAAAU8sLwAAAABJRU5ErkJggg==')
+          for name in ['icon.png', 'splash.png', 'adaptive-icon.png', 'favicon.png']:
+            with open(f'assets/{name}', 'wb') as f:
+              f.write(png)
+          "
+
+      - name: Make node visible to Gradle
+        run: |
+          sudo ln -sf "$(which node)" /usr/local/bin/node
+          echo "Node linked: $(node --version) at /usr/local/bin/node"
+
+      - name: Clean app.json and Prebuild
+        run: |
+          python3 -c "
+          import json
+          with open('app.json') as f:
+            data = json.load(f)
+          expo = data.get('expo', data)
+          for key in ['icon', 'splash', 'adaptiveIcon']:
+            expo.pop(key, None)
+          if 'android' in expo:
+            expo['android'].pop('adaptiveIcon', None)
+          if 'plugins' in expo:
+            expo['plugins'] = [p for p in expo['plugins'] if not (isinstance(p, list) and 'expo-splash-screen' in str(p))]
+          with open('app.json', 'w') as f:
+            json.dump(data if 'expo' in data else {'expo': expo}, f, indent=2)
+          "
+          npx expo prebuild --platform android --no-install
+
+      - name: Enable new architecture for Reanimated
+        run: |
+          echo "newArchEnabled=true" >> android/gradle.properties
+          echo "New architecture enabled in gradle.properties"
+
+      - name: Setup release signing
+        run: |
+          keytool -genkeypair -v \
+            -keystore android/app/release-key.keystore \
+            -alias release-key -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass android -keypass android \
+            -dname "CN=Auto Builder,OU=Dev,O=AutoExpo,L=City,S=State,C=US"
+          cd android/app
+          sed -i '/android {/a\    signingConfigs {\n        release {\n            storeFile file("release-key.keystore")\n            storePassword "android"\n            keyAlias "release-key"\n            keyPassword "android"\n        }\n    }' build.gradle
+          sed -i 's/signingConfig signingConfigs.debug/signingConfig signingConfigs.release/' build.gradle
+
+      - name: Symlink node_modules for Gradle
+        run: |
+          rm -rf android/node_modules
+          ln -s "$(pwd)/node_modules" android/node_modules
+
+      - name: Notify - Gradle building
+        if: steps.meta.outputs.has_meta == 'true'
+        run: bash /tmp/notify.sh "[3/6] Building APK with Gradle... (10-20 min)"
+
+      - name: Gradle assembleRelease
+        id: gradle_build
+        continue-on-error: true
+        env:
+          NODE_PATH: ${{ github.workspace }}/node_modules
+          NODE_BINARY: /usr/local/bin/node
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon 2>&1 | tee /tmp/gradle-output.log
+          cd ..
+          APK_PATH=$(find android/app/build/outputs/apk/release -name "*.apk" 2>/dev/null | head -1)
+          if [ -n "$APK_PATH" ]; then
+            echo "apk_path=$APK_PATH" >> $GITHUB_OUTPUT
+            echo "success=true" >> $GITHUB_OUTPUT
+          else
+            echo "success=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Rename APK
+        if: steps.gradle_build.outputs.success == 'true'
+        id: rename
+        run: |
+          APK_NAME="app-release-build-${{ github.run_number }}.apk"
+          cp "${{ steps.gradle_build.outputs.apk_path }}" "$APK_NAME"
+          echo "apk_name=$APK_NAME" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        if: steps.gradle_build.outputs.success == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          name: "Build #${{ github.run_number }} - ${{ steps.meta.outputs.app_name }}"
+          body: "Auto-generated APK build"
+          files: ${{ steps.rename.outputs.apk_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get download URL
+        if: steps.gradle_build.outputs.success == 'true'
+        id: download_url
+        run: |
+          REPO="${{ github.repository }}"
+          TAG="v1.0.${{ github.run_number }}"
+          echo "url=https://github.com/${REPO}/releases/download/${TAG}/${{ steps.rename.outputs.apk_name }}" >> $GITHUB_OUTPUT
+
+      - name: Notify - Success
+        if: steps.gradle_build.outputs.success == 'true' && steps.meta.outputs.has_meta == 'true'
+        env:
+          APP_NAME: ${{ steps.meta.outputs.app_name }}
+          APK_URL: ${{ steps.download_url.outputs.url }}
+        run: |
+          bash /tmp/notify.sh "[6/6] APK ready! App: ${APP_NAME} - Download: ${APK_URL}"
+
+      - name: Trigger auto-fix on failure
+        if: always() && steps.gradle_build.outputs.success != 'true' && steps.meta.outputs.has_meta == 'true'
+        env:
+          CHAT_ID: ${{ steps.meta.outputs.chat_id }}
+          BOT_URL: ${{ secrets.BOT_URL }}
+        run: |
+          if [ -n "$BOT_URL" ]; then
+            python3 -c "
+          import json, urllib.request, os, re
+
+          # Collect FULL TypeScript errors
+          ts_errors = ''
+          if os.path.exists('/tmp/ts-errors.log'):
+            ts_raw = open('/tmp/ts-errors.log').read().strip()
+            if ts_raw:
+              error_lines = [l for l in ts_raw.split('\n') if 'error TS' in l or ': error' in l]
+              if error_lines:
+                ts_errors = 'TypeScript errors (' + str(len(error_lines)) + ' total):\n' + '\n'.join(error_lines[:50])
+              else:
+                ts_errors = 'TypeScript errors:\n' + ts_raw[-3000:]
+
+          # Collect Gradle/bundler errors — extract important lines
+          gradle_errors = ''
+          if os.path.exists('/tmp/gradle-output.log'):
+            gradle_raw = open('/tmp/gradle-output.log').read()
+            important = []
+            for line in gradle_raw.split('\n'):
+              ll = line.lower()
+              if any(k in ll for k in ['error:', 'unable to resolve', 'cannot find', 'failed', 'module not found', 'could not be found']):
+                important.append(line.strip())
+            if important:
+              gradle_errors = 'Build errors:\n' + '\n'.join(important[:40])
+            else:
+              gradle_errors = 'Build log (tail):\n' + gradle_raw[-3000:]
+
+          # Extract files with errors
+          error_files = set()
+          all_errors = ts_errors + '\n' + gradle_errors
+          for m in re.findall(r'((?:app|src)/[^\s:()]+\.tsx?)', all_errors):
+            error_files.add(m)
+
+          parts = []
+          if ts_errors: parts.append(ts_errors)
+          if gradle_errors: parts.append(gradle_errors)
+          error = '\n\n'.join(parts) if parts else 'Build failed. Check GitHub Actions logs.'
+
+          payload = json.dumps({
+            'chatId': '${CHAT_ID}',
+            'error': error,
+            'errorFiles': list(error_files),
+            'buildMode': 'gradle'
+          }).encode()
+          req = urllib.request.Request('${BOT_URL}/build-error', data=payload, headers={'Content-Type': 'application/json'})
+          try:
+            resp = urllib.request.urlopen(req, timeout=15)
+            print(f'Auto-fix triggered: {resp.status}')
+            print(f'Error files detected: {list(error_files)}')
+          except Exception as e:
+            print(f'Auto-fix failed: {e}')
+          " || true
+          else
+            echo "WARNING: BOT_URL secret not set"
+          fi
+
+      - name: Notify - Failed
+        if: always() && steps.gradle_build.outputs.success != 'true' && steps.meta.outputs.has_meta == 'true'
+        env:
+          APP_NAME: ${{ steps.meta.outputs.app_name }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          bash /tmp/notify.sh "Build failed for: ${APP_NAME}. AI attempting auto-fix... Logs: ${RUN_URL}"
