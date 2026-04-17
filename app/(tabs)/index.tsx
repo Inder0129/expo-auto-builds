@@ -1,9 +1,11 @@
 import { View } from 'react-native';
-import { CalculatorDisplay } from '@/src/components/calculator/calculator-display';
-import { CalculatorKeypad } from '@/src/components/calculator/calculator-keypad';
-import { WrapperView } from '@/src/components/ui';
+import { CalculatorDisplay } from '../../src/components/calculator/calculator-display';
+import { CalculatorKeypad } from '../../src/components/calculator/calculator-keypad';
+import { WrapperView } from '../../src/components/ui/wrapper-view';
 import { useCallback, useState } from 'react';
-import { calculatorStyles } from '@/src/styles/calculator';
+import { StyleSheet } from 'react-native';
+import { colors } from '../../src/theme/colors';
+import { spacing } from '../../src/theme/spacing';
 
 export default function CalculatorScreen() {
   const [displayValue, setDisplayValue] = useState('0');
@@ -29,7 +31,7 @@ export default function CalculatorScreen() {
 
   return (
     <WrapperView>
-      <View style={calculatorStyles.container}>
+      <View style={styles.container}>
         <CalculatorDisplay value={displayValue} />
         <CalculatorKeypad
           onKeyPress={handleKeyPress}
@@ -40,3 +42,10 @@ export default function CalculatorScreen() {
     </WrapperView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+});
