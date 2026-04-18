@@ -128,13 +128,13 @@ export default function ExploreScreen(props: ExploreScreenProps) {
               >
                 <View style={[
                   { width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
-                  selectedCategory === category.id ? { backgroundColor: colors.primary } : { backgroundColor: colors.primaryLight }
+                  selectedCategory === category.id ? { backgroundColor: colors.primary } : { backgroundColor: colors.surface }
                 ]}>
                   <Ionicons name={category.icon as any} size={24} color={selectedCategory === category.id ? colors.white : colors.primary} />
                 </View>
                 <Text style={[
                   { fontSize: 12, fontWeight: '500', textAlign: 'center' },
-                  selectedCategory === category.id ? { color: colors.primary } : { color: colors.textPrimary }
+                  selectedCategory === category.id ? { color: colors.primary } : { color: colors.text }
                 ]} numberOfLines={2}>{category.name}</Text>
               </TouchableOpacity>
             ))}

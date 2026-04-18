@@ -129,20 +129,20 @@ export default function CartScreen() {
         <View style={{ backgroundColor: colors.surface, borderRadius: 8, padding: spacing.md, margin: spacing.md }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: spacing.sm }}>
             <Text style={{ ...typography.body, color: colors.textSecondary }}>Subtotal</Text>
-            <Text style={{ ...typography.body, color: colors.textPrimary }}>${priceSummary.subtotal.toFixed(2)}</Text>
+            <Text style={{ ...typography.body, color: colors.text }}>${priceSummary.subtotal.toFixed(2)}</Text>
           </View>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: spacing.sm }}>
             <Text style={{ ...typography.body, color: colors.textSecondary }}>Delivery Fee</Text>
-            <Text style={{ ...typography.body, color: colors.textPrimary }}>${priceSummary.deliveryFee.toFixed(2)}</Text>
+            <Text style={{ ...typography.body, color: colors.text }}>${priceSummary.deliveryFee.toFixed(2)}</Text>
           </View>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: spacing.md }}>
             <Text style={{ ...typography.body, color: colors.textSecondary }}>Tax</Text>
-            <Text style={{ ...typography.body, color: colors.textPrimary }}>${priceSummary.tax.toFixed(2)}</Text>
+            <Text style={{ ...typography.body, color: colors.text }}>${priceSummary.tax.toFixed(2)}</Text>
           </View>
           <View style={{ height: 1, backgroundColor: colors.border, marginVertical: spacing.md }} />
           <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-            <Text style={{ ...typography.subtitle, color: colors.textPrimary }}>Total</Text>
-            <Text style={{ ...typography.heading, color: colors.primary }}>${priceSummary.total.toFixed(2)}</Text>
+            <Text style={{ ...typography.h3, color: colors.text }}>Total</Text>
+            <Text style={{ ...typography.h2, color: colors.primary }}>${priceSummary.total.toFixed(2)}</Text>
           </View>
         </View>
       </ScrollView>
@@ -151,7 +151,7 @@ export default function CartScreen() {
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <View style={{ flex: 1 }}>
             <Text style={{ ...typography.caption, color: colors.textSecondary }}>Total</Text>
-            <Text style={{ ...typography.heading, color: colors.primary }}>${priceSummary.total.toFixed(2)}</Text>
+            <Text style={{ ...typography.h2, color: colors.primary }}>${priceSummary.total.toFixed(2)}</Text>
           </View>
           <Button
             title={`Checkout (${cartItems.length} items)`}

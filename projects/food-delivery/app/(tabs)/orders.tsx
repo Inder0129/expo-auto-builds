@@ -51,7 +51,7 @@ export default function OrdersScreen(props: OrdersScreenProps) {
   const renderOrderItem = useCallback(({ item }: { item: Order }) => (
     <View style={[styles.orderCard, { backgroundColor: colors.surface, borderRadius: 12, padding: 16, marginBottom: 16 }]}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-        <Text style={{ fontSize: 16, fontWeight: '600', color: colors.textPrimary }}>{item.restaurantName}</Text>
+        <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text }}>{item.restaurantName}</Text>
         <Text style={{ fontSize: 16, fontWeight: '600', color: colors.primary }}>${item.total.toFixed(2)}</Text>
       </View>
       <Text style={{ fontSize: 14, color: colors.textSecondary, marginBottom: 8 }}>Status: {item.status}</Text>
@@ -70,7 +70,7 @@ export default function OrdersScreen(props: OrdersScreenProps) {
       return (
         <View style={styles.emptyState}>
           <Ionicons name="fast-food-outline" size={64} color={colors.textSecondary} />
-          <Text style={{ fontSize: 18, fontWeight: '600', color: colors.textPrimary, marginTop: 16, marginBottom: 8 }}>No active orders</Text>
+          <Text style={{ fontSize: 18, fontWeight: '600', color: colors.text, marginTop: 16, marginBottom: 8 }}>No active orders</Text>
           <Text style={{ fontSize: 14, color: colors.textSecondary, textAlign: 'center' }}>Your active orders will appear here</Text>
         </View>
       );
@@ -92,7 +92,7 @@ export default function OrdersScreen(props: OrdersScreenProps) {
       return (
         <View style={styles.emptyState}>
           <Ionicons name="time-outline" size={64} color={colors.textSecondary} />
-          <Text style={{ fontSize: 18, fontWeight: '600', color: colors.textPrimary, marginTop: 16, marginBottom: 8 }}>No past orders</Text>
+          <Text style={{ fontSize: 18, fontWeight: '600', color: colors.text, marginTop: 16, marginBottom: 8 }}>No past orders</Text>
           <Text style={{ fontSize: 14, color: colors.textSecondary, textAlign: 'center' }}>Your order history will appear here</Text>
         </View>
       );

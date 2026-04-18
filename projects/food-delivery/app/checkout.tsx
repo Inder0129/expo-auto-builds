@@ -29,7 +29,7 @@ interface PaymentMethodType {
 export default function CheckoutScreen() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const cartItems = useAppSelector(state => state.cart.items);
+  const cartItems = useAppSelector((state: any) => state.cart.items);
   
   const [selectedAddress, setSelectedAddress] = useState<string>('1');
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('1');
@@ -46,7 +46,7 @@ export default function CheckoutScreen() {
   ]), []);
   
   const subtotal = useMemo(() => 
-    cartItems.reduce((sum: number, item) => sum + (item.price * item.quantity), 0),
+    cartItems.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0),
     [cartItems]
   );
   
@@ -64,14 +64,14 @@ export default function CheckoutScreen() {
   
   const handlePlaceOrder = useCallback(() => {
     const orderId = Date.now().toString();
-    const selectedAddressObj = addresses.find(a => a.id === selectedAddress);
-    const selectedPaymentObj = paymentMethods.find(p => p.id === selectedPaymentMethod);
+    const selectedAddressObj = addresses.find((a: Address) => a.id === selectedAddress);
+    const selectedPaymentObj = paymentMethods.find((p: PaymentMethodType) => p.id === selectedPaymentMethod);
     
     dispatch(addOrder({
       id: orderId,
       items: cartItems,
       total,
-      address: selectedAddressObj?.address || '',
+      deliveryAddress: selectedAddressObj?.address || '',
       paymentMethod: selectedPaymentObj?.name || '',
       status: 'preparing',
       estimatedDelivery: '30-40 min',
