@@ -1,13 +1,30 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { View, Text, ScrollView, FlatList, TouchableOpacity, Image } from 'react-native';
+import { View, Text, ScrollView, FlatList, TouchableOpacity, Image, TextInput, ViewStyle } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/src/theme';
 import { Card } from '@/src/components/ui';
 import { useAppSelector } from '@/src/store/hooks';
-import { Restaurant } from '@/src/store/slices/restaurants';
-import { Category } from '@/src/constants';
+import { RootState } from '@/src/store';
 import { styles } from '@/src/styles/explore';
+
+interface Restaurant {
+  id: string;
+  name: string;
+  cuisine: string;
+  rating: number;
+  deliveryTime: number;
+  priceRange: string;
+  image: string;
+  categoryIds: string[];
+  hasOffers: boolean;
+}
+
+interface Category {
+  id: string;
+  name: string;
+  icon: string;
+}
 
 interface RestaurantCardProps {
   restaurant: Restaurant;
@@ -127,7 +144,7 @@ const CategoryGrid: React.FC<CategoryGridProps> = ({ categories, onCategoryPress
 
 export default function ExploreScreen() {
   const router = useRouter();
-  const restaurants = useAppSelector((state: RootState) => state.restaurants.all);
+  const restaurants = useAppSelector((state: RootState) => state.restaurants.restaurants);
   const categories = useAppSelector((state: RootState) => state.restaurants.categories);
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);

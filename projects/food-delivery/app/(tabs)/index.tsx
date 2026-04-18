@@ -1,14 +1,27 @@
-import React, { useCallback, useMemo } from 'react';
-import { View, Text, ScrollView, FlatList, StyleSheet, Image, TouchableOpacity, Dimensions } from 'react-native';
-import { Link } from 'expo-router';
+import React, { useCallback, useMemo, useState } from 'react';
+import { View, Text, ScrollView, FlatList, Image, TouchableOpacity, TextInput, ViewStyle } from 'react-native';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/src/theme';
-import { Button } from '@/src/components/ui';
 import { Card } from '@/src/components/ui';
 import { useAppSelector } from '@/src/store/hooks';
-import { Restaurant } from '@/src/store/slices/restaurants';
-import { Category } from '@/src/constants';
+import { RootState } from '@/src/store';
 import { styles } from '@/src/styles/home';
+
+interface Restaurant {
+  id: string;
+  name: string;
+  cuisine: string;
+  rating: number;
+  deliveryTime: number;
+  image: string;
+}
+
+interface Category {
+  id: string;
+  name: string;
+  icon: string;
+}
 
 interface RestaurantCardProps {
   restaurant: Restaurant;
@@ -89,7 +102,7 @@ const OfferBanner: React.FC<OfferBannerProps> = ({ title, description, discount,
 };
 
 const SearchBar: React.FC<SearchBarProps> = ({ placeholder, onSearch, style }) => {
-  const [query, setQuery] = React.useState('');
+  const [query, setQuery] = useState('');
 
   const handleSearch = useCallback(() => {
     onSearch(query);
@@ -111,9 +124,9 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder, onSearch, style }) =
 };
 
 export default function HomeScreen() {
+  const router = useRouter();
   const restaurants = useAppSelector((state: RootState) => state.restaurants.featured);
   const categories = useAppSelector((state: RootState) => state.restaurants.categories);
-  const router = useRouter();
 
   const featuredRestaurants = useMemo(() => {
     return restaurants.slice(0, 5);

@@ -1,13 +1,29 @@
 import React, { useCallback, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Image } from 'react-native';
-import { Link } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/src/theme';
 import { Card } from '@/src/components/ui';
 import { Button } from '@/src/components/ui';
 import { useAppSelector } from '@/src/store/hooks';
-import { Order } from '@/src/store/slices/orders';
+import { RootState } from '@/src/store';
 import { styles } from '@/src/styles/orders';
+
+interface OrderItem {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+  image: string;
+}
+
+interface Order {
+  id: string;
+  date: string;
+  status: string;
+  items: OrderItem[];
+  total: number;
+}
 
 interface OrderCardProps {
   order: Order;
@@ -182,7 +198,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({
 
 export default function OrdersScreen() {
   const router = useRouter();
-  const orders = useAppSelector((state: RootState) => state.orders.list);
+  const orders = useAppSelector((state: RootState) => state.orders.orders);
   const activeOrders = useMemo(() => {
     return orders.filter((order: Order) => 
       ['preparing', 'on_the_way'].includes(order.status)
