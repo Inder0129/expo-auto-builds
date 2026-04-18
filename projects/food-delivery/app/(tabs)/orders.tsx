@@ -1,19 +1,24 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { View, Text, ScrollView, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import { Link } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/src/theme';
 import { Button } from '@/src/components/ui';
-import { OrderCard } from '@/src/components/order-card';
-import { TrackingStepper } from '@/src/components/tracking-stepper';
-import { EmptyState } from '@/src/components/empty-state';
 import { useAppSelector } from '@/src/store/hooks';
-import { Order } from '@/src/store/slices/orders';
 import { styles } from '@/src/styles/orders';
 
 interface OrdersScreenProps {}
 
 type OrderTab = 'active' | 'past';
+
+type Order = {
+  id: string;
+  restaurantName: string;
+  total: number;
+  status: string;
+  items: Array<{ name: string; quantity: number }>;
+  createdAt: string;
+};
 
 export default function OrdersScreen(props: OrdersScreenProps) {
   const [activeTab, setActiveTab] = useState<OrderTab>('active');
@@ -44,23 +49,30 @@ export default function OrdersScreen(props: OrdersScreenProps) {
   }, []);
   
   const renderOrderItem = useCallback(({ item }: { item: Order }) => (
-    <OrderCard
-      order={item}
-      onPress={() => handleOrderPress(item.id)}
-      onReorder={() => handleReorderPress(item.id)}
-      style={styles.orderCard}
-    />
+    <View style={[styles.orderCard, { backgroundColor: colors.surface, borderRadius: 12, padding: 16, marginBottom: 16 }]}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+        <Text style={{ fontSize: 16, fontWeight: '600', color: colors.textPrimary }}>{item.restaurantName}</Text>
+        <Text style={{ fontSize: 16, fontWeight: '600', color: colors.primary }}>${item.total.toFixed(2)}</Text>
+      </View>
+      <Text style={{ fontSize: 14, color: colors.textSecondary, marginBottom: 8 }}>Status: {item.status}</Text>
+      <Text style={{ fontSize: 14, color: colors.textSecondary, marginBottom: 12 }}>
+        {item.items.map((item: any) => `${item.quantity}x ${item.name}`).join(', ')}
+      </Text>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+        <Button title="View Details" onPress={() => handleOrderPress(item.id)} style={{ paddingHorizontal: 12, paddingVertical: 6 }} />
+        <Button title="Reorder" onPress={() => handleReorderPress(item.id)} style={{ paddingHorizontal: 12, paddingVertical: 6 }} />
+      </View>
+    </View>
   ), [handleOrderPress, handleReorderPress]);
   
   const renderActiveOrders = useCallback(() => {
     if (filteredOrders.length === 0) {
       return (
-        <EmptyState
-          icon="fast-food-outline"
-          title="No active orders"
-          description="Your active orders will appear here"
-          style={styles.emptyState}
-        />
+        <View style={styles.emptyState}>
+          <Ionicons name="fast-food-outline" size={64} color={colors.textSecondary} />
+          <Text style={{ fontSize: 18, fontWeight: '600', color: colors.textPrimary, marginTop: 16, marginBottom: 8 }}>No active orders</Text>
+          <Text style={{ fontSize: 14, color: colors.textSecondary, textAlign: 'center' }}>Your active orders will appear here</Text>
+        </View>
       );
     }
     
@@ -78,12 +90,11 @@ export default function OrdersScreen(props: OrdersScreenProps) {
   const renderPastOrders = useCallback(() => {
     if (filteredOrders.length === 0) {
       return (
-        <EmptyState
-          icon="time-outline"
-          title="No past orders"
-          description="Your order history will appear here"
-          style={styles.emptyState}
-        />
+        <View style={styles.emptyState}>
+          <Ionicons name="time-outline" size={64} color={colors.textSecondary} />
+          <Text style={{ fontSize: 18, fontWeight: '600', color: colors.textPrimary, marginTop: 16, marginBottom: 8 }}>No past orders</Text>
+          <Text style={{ fontSize: 14, color: colors.textSecondary, textAlign: 'center' }}>Your order history will appear here</Text>
+        </View>
       );
     }
     
@@ -131,9 +142,8 @@ export default function OrdersScreen(props: OrdersScreenProps) {
             </View>
             <Button
               title="Contact"
-              variant="outline"
-              size="small"
               onPress={() => {}}
+              style={{ paddingHorizontal: 12, paddingVertical: 6 }}
             />
           </View>
         )}

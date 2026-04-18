@@ -2,13 +2,13 @@ import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/src/theme';
 
-type TabIconProps = {
+interface TabIconProps {
   name: keyof typeof Ionicons.glyphMap;
   color: string;
   size: number;
-};
+}
 
-function TabIcon(props: TabIconProps): JSX.Element {
+function TabIcon(props: TabIconProps): React.JSX.Element {
   return <Ionicons name={props.name} color={props.color} size={props.size} />;
 }
 

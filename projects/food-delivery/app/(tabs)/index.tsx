@@ -7,10 +7,7 @@ import { Button } from '@/src/components/ui';
 import { RestaurantCard } from '@/src/components/restaurant-card';
 import { CategoryCard } from '@/src/components/category-card';
 import { OfferBanner } from '@/src/components/offer-banner';
-import { SearchBar } from '@/src/components/search-bar';
 import { useAppSelector } from '@/src/store/hooks';
-import { Restaurant } from '@/src/store/slices/restaurants';
-import { Category } from '@/src/constants';
 import { styles } from '@/src/styles/home';
 
 interface HomeScreenProps {}
@@ -20,6 +17,24 @@ type Offer = {
   title: string;
   description: string;
   imageUrl: string;
+};
+
+type Restaurant = {
+  id: string;
+  name: string;
+  description: string;
+  rating: number;
+  deliveryTime: string;
+  deliveryFee: number;
+  imageUrl: string;
+  cuisine: string;
+  hasOffers: boolean;
+};
+
+type Category = {
+  id: string;
+  name: string;
+  icon: string;
 };
 
 export default function HomeScreen(props: HomeScreenProps) {
@@ -80,11 +95,13 @@ export default function HomeScreen(props: HomeScreenProps) {
         </TouchableOpacity>
       </View>
       
-      <SearchBar
-        placeholder="Search restaurants or dishes"
+      <TouchableOpacity
+        style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10, marginHorizontal: 16, marginBottom: 24 }}
         onPress={handleSearchPress}
-        style={styles.searchBar}
-      />
+      >
+        <Ionicons name="search" size={20} color={colors.textSecondary} style={{ marginRight: 8 }} />
+        <Text style={{ fontSize: 16, color: colors.textSecondary }}>Search restaurants or dishes</Text>
+      </TouchableOpacity>
       
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Categories</Text>

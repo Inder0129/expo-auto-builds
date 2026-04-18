@@ -2,16 +2,13 @@ import React, { useCallback, useMemo } from 'react';
 import { View, ScrollView, Text, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAppSelector, useAppDispatch } from '@/src/store/hooks';
-import { clearCart, removeFromCart, updateQuantity } from '@/src/store/slices/cart';
+import { clearCart, removeItem, addItem } from '@/src/store/slices/cart';
 import { colors, spacing, typography } from '@/src/theme';
 import { Button } from '@/src/components/ui/button';
 import { CartItem } from '@/src/components/cart/cart-item';
-import { PriceSummary } from '@/src/components/cart/price-summary';
-import { CheckoutButton } from '@/src/components/cart/checkout-button';
-import { EmptyCart } from '@/src/components/cart/empty-cart';
 import styles from '@/src/styles/cart';
 
-type CartItemType = {
+interface CartItemType {
   id: string;
   name: string;
   description: string;
@@ -20,7 +17,7 @@ type CartItemType = {
   image: string;
   restaurantId: string;
   restaurantName: string;
-};
+}
 
 export default function CartScreen() {
   const router = useRouter();
@@ -37,7 +34,7 @@ export default function CartScreen() {
         { 
           text: 'Remove', 
           style: 'destructive',
-          onPress: () => dispatch(removeFromCart(itemId))
+          onPress: () => dispatch(removeItem(itemId))
         }
       ]
     );
@@ -48,8 +45,11 @@ export default function CartScreen() {
       handleRemoveItem(itemId);
       return;
     }
-    dispatch(updateQuantity({ id: itemId, quantity }));
-  }, [dispatch, handleRemoveItem]);
+    const item = cartItems.find((item: CartItemType) => item.id === itemId);
+    if (item) {
+      dispatch(addItem({ ...item, quantity }));
+    }
+  }, [dispatch, handleRemoveItem, cartItems]);
 
   const handleClearCart = useCallback(() => {
     Alert.alert(
@@ -86,7 +86,14 @@ export default function CartScreen() {
   }), [cartTotal, deliveryFee, tax, orderTotal]);
 
   if (cartItems.length === 0) {
-    return <EmptyCart onBrowseRestaurants={() => router.push('/(tabs)/explore')} />;
+    return (
+      <View style={styles.container}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{ fontSize: 18, color: colors.textSecondary, marginBottom: 16 }}>Your cart is empty</Text>
+          <Button title="Browse Restaurants" onPress={() => router.push('/(tabs)/explore')} />
+        </View>
+      </View>
+    );
   }
 
   return (
@@ -99,9 +106,8 @@ export default function CartScreen() {
           <Text style={styles.title}>Your Cart</Text>
           <Button 
             title="Clear All" 
-            variant="text" 
-            size="small"
             onPress={handleClearCart}
+            style={{ paddingHorizontal: 12, paddingVertical: 6 }}
           />
         </View>
 
@@ -120,20 +126,39 @@ export default function CartScreen() {
           />
         ))}
 
-        <PriceSummary 
-          subtotal={priceSummary.subtotal}
-          deliveryFee={priceSummary.deliveryFee}
-          tax={priceSummary.tax}
-          total={priceSummary.total}
-        />
+        <View style={{ backgroundColor: colors.surface, borderRadius: 8, padding: spacing.md, margin: spacing.md }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: spacing.sm }}>
+            <Text style={{ ...typography.body, color: colors.textSecondary }}>Subtotal</Text>
+            <Text style={{ ...typography.body, color: colors.textPrimary }}>${priceSummary.subtotal.toFixed(2)}</Text>
+          </View>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: spacing.sm }}>
+            <Text style={{ ...typography.body, color: colors.textSecondary }}>Delivery Fee</Text>
+            <Text style={{ ...typography.body, color: colors.textPrimary }}>${priceSummary.deliveryFee.toFixed(2)}</Text>
+          </View>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: spacing.md }}>
+            <Text style={{ ...typography.body, color: colors.textSecondary }}>Tax</Text>
+            <Text style={{ ...typography.body, color: colors.textPrimary }}>${priceSummary.tax.toFixed(2)}</Text>
+          </View>
+          <View style={{ height: 1, backgroundColor: colors.border, marginVertical: spacing.md }} />
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            <Text style={{ ...typography.subtitle, color: colors.textPrimary }}>Total</Text>
+            <Text style={{ ...typography.heading, color: colors.primary }}>${priceSummary.total.toFixed(2)}</Text>
+          </View>
+        </View>
       </ScrollView>
 
       <View style={styles.footer}>
-        <CheckoutButton 
-          total={priceSummary.total}
-          itemCount={cartItems.length}
-          onPress={handleCheckout}
-        />
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <View style={{ flex: 1 }}>
+            <Text style={{ ...typography.caption, color: colors.textSecondary }}>Total</Text>
+            <Text style={{ ...typography.heading, color: colors.primary }}>${priceSummary.total.toFixed(2)}</Text>
+          </View>
+          <Button
+            title={`Checkout (${cartItems.length} items)`}
+            onPress={handleCheckout}
+            style={{ flex: 2, marginLeft: spacing.md }}
+          />
+        </View>
       </View>
     </View>
   );

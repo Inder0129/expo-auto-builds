@@ -4,12 +4,7 @@ import { Link } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/src/theme';
 import { RestaurantCard } from '@/src/components/restaurant-card';
-import { FilterChip } from '@/src/components/filter-chip';
-import { SearchBar } from '@/src/components/search-bar';
-import { CategoryGrid } from '@/src/components/category-grid';
 import { useAppSelector } from '@/src/store/hooks';
-import { Restaurant } from '@/src/store/slices/restaurants';
-import { Category } from '@/src/constants';
 import { styles } from '@/src/styles/explore';
 
 interface ExploreScreenProps {}
@@ -18,6 +13,26 @@ type Filter = {
   id: string;
   label: string;
   icon: string;
+};
+
+type Category = {
+  id: string;
+  name: string;
+  icon: string;
+};
+
+type Restaurant = {
+  id: string;
+  name: string;
+  description: string;
+  rating: number;
+  deliveryTime: string;
+  deliveryFee: number;
+  imageUrl: string;
+  cuisine: string;
+  hasOffers: boolean;
+  isVeg: boolean;
+  categoryIds: string[];
 };
 
 export default function ExploreScreen(props: ExploreScreenProps) {
@@ -41,7 +56,7 @@ export default function ExploreScreen(props: ExploreScreenProps) {
     return restaurants.filter((restaurant: Restaurant) => {
       const matchesFilter = selectedFilter === 'all' || 
         (selectedFilter === 'rating' && restaurant.rating >= 4.0) ||
-        (selectedFilter === 'fast' && restaurant.deliveryTime <= 30) ||
+        (selectedFilter === 'fast' && parseInt(restaurant.deliveryTime) <= 30) ||
         (selectedFilter === 'offers' && restaurant.hasOffers) ||
         (selectedFilter === 'veg' && restaurant.isVeg);
       
@@ -68,12 +83,16 @@ export default function ExploreScreen(props: ExploreScreenProps) {
   }, []);
   
   const renderFilterItem = useCallback(({ item }: { item: Filter }) => (
-    <FilterChip
-      filter={item}
-      isSelected={selectedFilter === item.id}
+    <TouchableOpacity
+      style={[
+        { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, marginRight: 8, flexDirection: 'row', alignItems: 'center' },
+        selectedFilter === item.id ? { backgroundColor: colors.primary } : { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }
+      ]}
       onPress={() => handleFilterPress(item.id)}
-      style={styles.filterChip}
-    />
+    >
+      <Ionicons name={item.icon as any} size={16} color={selectedFilter === item.id ? colors.white : colors.textSecondary} style={{ marginRight: 4 }} />
+      <Text style={{ fontSize: 14, color: selectedFilter === item.id ? colors.white : colors.textSecondary }}>{item.label}</Text>
+    </TouchableOpacity>
   ), [selectedFilter, handleFilterPress]);
   
   const renderRestaurantItem = useCallback(({ item }: { item: Restaurant }) => (
@@ -88,22 +107,38 @@ export default function ExploreScreen(props: ExploreScreenProps) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <SearchBar
-          placeholder="Search restaurants or dishes"
+        <TouchableOpacity
+          style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10, flex: 1 }}
           onPress={handleSearchPress}
-          style={styles.searchBar}
-        />
+        >
+          <Ionicons name="search" size={20} color={colors.textSecondary} style={{ marginRight: 8 }} />
+          <Text style={{ fontSize: 16, color: colors.textSecondary }}>Search restaurants or dishes</Text>
+        </TouchableOpacity>
       </View>
       
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Categories</Text>
-          <CategoryGrid
-            categories={categories}
-            selectedCategory={selectedCategory}
-            onCategoryPress={handleCategoryPress}
-            style={styles.categoryGrid}
-          />
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingHorizontal: 16 }}>
+            {categories.map((category: Category) => (
+              <TouchableOpacity
+                key={category.id}
+                style={{ alignItems: 'center', marginRight: 16, width: 80 }}
+                onPress={() => handleCategoryPress(category.id)}
+              >
+                <View style={[
+                  { width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
+                  selectedCategory === category.id ? { backgroundColor: colors.primary } : { backgroundColor: colors.primaryLight }
+                ]}>
+                  <Ionicons name={category.icon as any} size={24} color={selectedCategory === category.id ? colors.white : colors.primary} />
+                </View>
+                <Text style={[
+                  { fontSize: 12, fontWeight: '500', textAlign: 'center' },
+                  selectedCategory === category.id ? { color: colors.primary } : { color: colors.textPrimary }
+                ]} numberOfLines={2}>{category.name}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
         </View>
         
         <View style={styles.section}>
