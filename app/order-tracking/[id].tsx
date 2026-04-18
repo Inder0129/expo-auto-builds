@@ -1,10 +1,10 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import TrackingStepper from '@/src/components/order-tracking/tracking-stepper';
-import DeliveryPersonCard from '@/src/components/order-tracking/delivery-person-card';
+import { TrackingStepper } from '@/src/components/order-tracking';
+import { DeliveryPersonCard } from '@/src/components/order-tracking';
 import { colors } from '@/src/theme';
 import orderTrackingStyles from '@/src/styles/order-tracking';
 
@@ -59,12 +59,10 @@ const OrderTrackingScreen: React.FC = () => {
   }, []);
 
   const handleCallDeliveryPerson = useCallback(() => {
-    // In a real app, this would initiate a phone call
     console.log('Calling delivery person:', deliveryPerson.phone);
   }, [deliveryPerson]);
 
   const handleMessageDeliveryPerson = useCallback(() => {
-    // In a real app, this would open a messaging interface
     console.log('Messaging delivery person:', deliveryPerson.phone);
   }, [deliveryPerson]);
 
