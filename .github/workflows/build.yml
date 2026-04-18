@@ -163,7 +163,10 @@ jobs:
           if 'android' in expo:
             expo['android'].pop('adaptiveIcon', None)
           if 'plugins' in expo:
-            expo['plugins'] = [p for p in expo['plugins'] if not (isinstance(p, list) and 'expo-splash-screen' in str(p))]
+            valid = {'expo-router','expo-camera','expo-media-library','expo-location','expo-notifications','expo-sensors','expo-file-system','expo-av','expo-image-picker','expo-contacts','expo-calendar','expo-document-picker','expo-font','expo-haptics','expo-local-authentication','expo-secure-store','expo-sqlite','expo-background-fetch','expo-task-manager','expo-build-properties','expo-dev-client'}
+            expo['plugins'] = [p for p in expo['plugins'] if (isinstance(p, str) and p in valid) or (isinstance(p, list) and len(p) > 0 and p[0] in valid)]
+            if not expo['plugins']:
+              del expo['plugins']
           with open('app.json', 'w') as f:
             json.dump(data if 'expo' in data else {'expo': expo}, f, indent=2)
           "
