@@ -1,0 +1,115 @@
+import { StyleSheet } from 'react-native';
+
+export const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#ffffff',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  restaurantName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000000',
+  },
+  shareButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  restaurantImage: {
+    width: '100%',
+    height: 250,
+  },
+  restaurantInfo: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e5e5',
+  },
+  cuisine: {
+    fontSize: 16,
+    color: '#666666',
+    marginBottom: 8,
+  },
+  ratingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  rating: {
+    fontSize: 14,
+    color: '#666666',
+    marginLeft: 4,
+  },
+  deliveryTime: {
+    fontSize: 14,
+    color: '#ff6b35',
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  address: {
+    fontSize: 14,
+    color: '#666666',
+  },
+  menuSection: {
+    padding: 16,
+  },
+  menuTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#000000',
+    marginBottom: 16,
+  },
+  menuItem: {
+    marginBottom: 16,
+  },
+  cartSummary: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
+  cartItemOverlay: {
+    position: 'absolute',
+    bottom: 80,
+    right: 16,
+    backgroundColor: '#ffffff',
+    borderRadius: 8,
+    padding: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  cartItemName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#000000',
+    marginRight: 12,
+  },
+});
