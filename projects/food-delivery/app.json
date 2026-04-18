@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "name": "FoodDelivery",
+    "slug": "food-delivery",
+    "scheme": "food-delivery",
+    "owner": "inder-6284",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.inder6284.fooddelivery"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
