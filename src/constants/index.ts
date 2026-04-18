@@ -1,0 +1,9 @@
+export const API_BASE_URL = 'https://api.fooddelivery.com';
+export const API_TIMEOUT = 10000;
+export const CART_STORAGE_KEY = '@food_delivery_cart';
+export const AUTH_STORAGE_KEY = '@food_delivery_auth';
+export const USER_STORAGE_KEY = '@food_delivery_user';
+export const DELIVERY_FEE = 2.99;
+export const TAX_RATE = 0.08;
+export const MIN_ORDER_AMOUNT = 10.0;
+export const MAX_DELIVERY_DISTANCE = 10;
