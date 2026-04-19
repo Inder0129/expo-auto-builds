@@ -1,22 +1,36 @@
 {
   "expo": {
-    "name": "CameraApp",
-    "owner": "inder-6284",
-    "slug": "camera-app",
-    "scheme": "camera-app",
+    "name": "initial-template",
+    "slug": "initial-template",
     "version": "1.0.0",
     "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "initial-template",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": false,
-    "plugins": [
-      "expo-router"
-    ],
-    "platforms": [
-      "ios",
-      "android"
-    ],
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
     "android": {
-      "package": "com.inder6284.cameraapp"
-    }
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "package": "com.autoexpo.template"
+    },
+    "web": {
+      "bundler": "metro",
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-web-browser"
+    ]
   }
 }
